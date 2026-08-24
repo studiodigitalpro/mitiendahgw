@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -13,27 +13,148 @@ import {
   Coins, 
   Building2, 
   Calculator,
-  Gift
+  Gift,
+  ShoppingBag,
+  Plus,
+  Minus,
+  RefreshCw,
+  Layers
 } from 'lucide-react';
 import { SPONSOR_INFO, MEMBERSHIP_PLANS } from '../data/memberships';
+import { PRODUCTS } from '../data/products';
 
 interface BusinessSectionProps {
   onOpenRegisterModal: () => void;
 }
 
-export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegisterModal }) => {
-  // Simulator State
-  const [directClients, setDirectClients] = useState<number>(8);
-  const [directPartners, setDirectPartners] = useState<number>(4);
-  const [selectedPackage, setSelectedPackage] = useState<'prejunior' | 'junior' | 'senior' | 'master'>('master');
+// Representative popular products for quick selection
+const POPULAR_SIMULATOR_PRODUCTS = [
+  { id: 1001, defaultQty: 5 }, // Berry Juice Smilax ($42 pub - $29.40 soc = $12.60 gain)
+  { id: 1013, defaultQty: 8 }, // Blueberry Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
+  { id: 1015, defaultQty: 6 }, // Ganoderma Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
+  { id: 1002, defaultQty: 4 }, // Blueberry Collagen Peptides ($48 pub - $33.60 soc = $14.40 gain)
+  { id: 1046, defaultQty: 10 }, // Pasta Dental Turmalina Negra ($8 pub - $5 soc = $3.00 gain)
+  { id: 1033, defaultQty: 12 }, // Toalla Sanitaria Día ($5 pub - $3.50 soc = $1.50 gain)
+  { id: 1040, defaultQty: 2 }, // Termo Waterson ($95 pub - $65 soc = $30.00 gain)
+];
 
-  // Profit Calculations
-  // Average profit per client sale is ~$8 - $12
-  const retailProfit = directClients * 12;
-  // Fast start & team bonuses scale with package and partners
-  const packageBonusFactor = selectedPackage === 'master' ? 1.0 : selectedPackage === 'senior' ? 0.8 : selectedPackage === 'junior' ? 0.6 : 0.4;
-  const networkBonus = Math.round(directPartners * 45 * packageBonusFactor);
-  const estimatedMonthlyIncome = retailProfit + networkBonus + Math.round(directPartners * directClients * 2.5);
+export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegisterModal }) => {
+  // Simulator: Product selection & quantities for retail profit calculation
+  const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<number, number>>({
+    1001: 4, // 4 Berry Juice (gain: 4 * $12.60 = $50.40)
+    1013: 8, // 8 Café Arándanos (gain: 8 * $7.00 = $56.00)
+    1015: 6, // 6 Café Ganoderma (gain: 6 * $7.00 = $42.00)
+    1002: 3, // 3 Colágenos (gain: 3 * $14.40 = $43.20)
+    1046: 8, // 8 Pastas dentales (gain: 8 * $3.00 = $24.00)
+  });
+
+  // Additional single product selector
+  const [customProductId, setCustomProductId] = useState<number>(1040);
+  const [customProductQty, setCustomProductQty] = useState<number>(2);
+
+  // Simulator: Start Bonuses across 2 levels
+  // Bonus values requested: $5 (Prejunior), $10 (Junior), $30 (Senior), $60 (Master)
+  const [level1, setLevel1] = useState<{ prejunior: number; junior: number; senior: number; master: number }>({
+    prejunior: 2,
+    junior: 2,
+    senior: 1,
+    master: 1,
+  });
+
+  const [level2, setLevel2] = useState<{ prejunior: number; junior: number; senior: number; master: number }>({
+    prejunior: 4,
+    junior: 2,
+    senior: 1,
+    master: 1,
+  });
+
+  // Active tab inside the calculator
+  const [activeCalcTab, setActiveCalcTab] = useState<'products' | 'bonuses'>('products');
+
+  // Bonus rates defined by user
+  const BONUS_RATES = {
+    prejunior: 5.0,
+    junior: 10.0,
+    senior: 30.0,
+    master: 60.0,
+  };
+
+  // Calculate Retail Profit from selected products based on actual discount margin (pricePublic - pricePartner)
+  const retailProfitBreakdown = useMemo(() => {
+    let totalProfit = 0;
+    let totalItems = 0;
+    const items: Array<{
+      product: typeof PRODUCTS[0];
+      qty: number;
+      marginPerUnit: number;
+      subtotalProfit: number;
+    }> = [];
+
+    Object.entries(selectedProductQuantities).forEach(([prodIdStr, rawQty]) => {
+      const prodId = Number(prodIdStr);
+      const qty = Number(rawQty) || 0;
+      if (qty > 0) {
+        const product = PRODUCTS.find((p) => p.id === prodId);
+        if (product) {
+          const margin = Number((product.pricePublic - product.pricePartner).toFixed(2));
+          const subtotal = Number((margin * qty).toFixed(2));
+          totalProfit += subtotal;
+          totalItems += qty;
+          items.push({
+            product,
+            qty,
+            marginPerUnit: margin,
+            subtotalProfit: subtotal,
+          });
+        }
+      }
+    });
+
+    return { totalProfit: Number(totalProfit.toFixed(2)), totalItems, items };
+  }, [selectedProductQuantities]);
+
+  // Calculate Level 1 Start Bonus
+  const bonusLevel1 = useMemo(() => {
+    return (
+      level1.prejunior * BONUS_RATES.prejunior +
+      level1.junior * BONUS_RATES.junior +
+      level1.senior * BONUS_RATES.senior +
+      level1.master * BONUS_RATES.master
+    );
+  }, [level1]);
+
+  // Calculate Level 2 Start Bonus
+  const bonusLevel2 = useMemo(() => {
+    return (
+      level2.prejunior * BONUS_RATES.prejunior +
+      level2.junior * BONUS_RATES.junior +
+      level2.senior * BONUS_RATES.senior +
+      level2.master * BONUS_RATES.master
+    );
+  }, [level2]);
+
+  const totalStartBonuses = bonusLevel1 + bonusLevel2;
+  const totalEstimatedIncome = Number((retailProfitBreakdown.totalProfit + totalStartBonuses).toFixed(2));
+
+  // Handler to update quantity of a product
+  const handleUpdateQty = (productId: number, newQty: number) => {
+    setSelectedProductQuantities((prev) => {
+      const updated = { ...prev };
+      if (newQty <= 0) {
+        delete updated[productId];
+      } else {
+        updated[productId] = newQty;
+      }
+      return updated;
+    });
+  };
+
+  // Handler to add custom product to calculation
+  const handleAddCustomProduct = () => {
+    if (customProductQty > 0) {
+      handleUpdateQty(customProductId, (selectedProductQuantities[customProductId] || 0) + customProductQty);
+    }
+  };
 
   return (
     <section id="negocio-hgw-section" className="my-14 space-y-10">
@@ -61,7 +182,7 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegister
             Plan Mutuo Patentado (50/50)
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Unico en la industria: ganas el 50% de las comisiones de tu línea descendente ¡y también de los que tu patrocinador posicione en tu red!
+            Único en la industria: ganas el 50% de las comisiones de tu línea descendente ¡y también de los que tu patrocinador posicione en tu red!
           </p>
         </div>
 
@@ -104,129 +225,483 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegister
 
       {/* Interactive Business Calculator */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white border border-emerald-500/30 shadow-2xl space-y-8">
+        {/* Calculator Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
               <Calculator className="w-4 h-4" />
-              Simulador de Ganancias HGW Panamá
+              Calculadora Dinámica de Posibles Ganancias HGW
             </div>
             <h3 className="text-2xl font-black text-white mt-1">
-              Calcula tu Potencial de Ingresos Mensuales
+              Simula tus Ganancias por Ventas y Bonos de Inicio
             </h3>
           </div>
-          <span className="text-xs text-slate-400">
-            Estimación basada en margen comercial del 30%-52% y plan de comisiones
+          <span className="text-xs text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-xl self-start md:self-auto">
+            Margen exacto (P. Público - P. Socio) + Bonos hasta 2 niveles
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-          {/* Controls */}
+        {/* Tab Selector */}
+        <div className="flex gap-2 border-b border-slate-800 pb-2">
+          <button
+            onClick={() => setActiveCalcTab('products')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeCalcTab === 'products'
+                ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            1. Venta Directa (Margen por Producto)
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-900/40 text-[10px] text-white">
+              ${retailProfitBreakdown.totalProfit.toFixed(2)}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveCalcTab('bonuses')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeCalcTab === 'bonuses'
+                ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            2. Bonos de Inicio ($5, $10, $30, $60 hasta 2 Niveles)
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-900/40 text-[10px] text-white">
+              ${totalStartBonuses.toFixed(2)}
+            </span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Main Controls Area (Tabs) */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Package selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Nivel de Membresía:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { id: 'prejunior', name: 'Prejunior (50 BV)', tag: '30%' },
-                  { id: 'junior', name: 'Junior (100 BV)', tag: '30%' },
-                  { id: 'senior', name: 'Senior (300 BV)', tag: '30%' },
-                  { id: 'master', name: 'Master (600 BV)', tag: '30% + Bono' }
-                ].map((pkg) => (
+            {activeCalcTab === 'products' ? (
+              <div className="space-y-5">
+                <div className="flex justify-between items-center text-xs text-slate-300">
+                  <span className="font-bold">Ajusta la cantidad mensual de productos que planeas distribuir:</span>
                   <button
-                    key={pkg.id}
-                    onClick={() => setSelectedPackage(pkg.id as any)}
-                    className={`p-2.5 rounded-xl text-left border text-xs font-bold transition-all ${
-                      selectedPackage === pkg.id
-                        ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20 font-black'
-                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-600'
-                    }`}
+                    onClick={() =>
+                      setSelectedProductQuantities({
+                        1001: 5,
+                        1013: 10,
+                        1015: 10,
+                        1002: 4,
+                        1046: 12,
+                        1040: 2,
+                      })
+                    }
+                    className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px]"
                   >
-                    <div className="truncate">{pkg.name}</div>
-                    <div className="text-[10px] opacity-80 mt-0.5">{pkg.tag}</div>
+                    <RefreshCw className="w-3 h-3" /> Cargar combo sugerido
                   </button>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Slider: Clientes mensuales */}
-            <div className="space-y-2 bg-slate-800/60 p-4 rounded-2xl border border-slate-700">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-300 font-bold">Clientes con Venta Directa al Mes:</span>
-                <span className="text-emerald-400 font-black text-base">{directClients} clientes</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="40"
-                step="1"
-                value={directClients}
-                onChange={(e) => setDirectClients(Number(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400">
-                <span>0 clientes</span>
-                <span>20 clientes</span>
-                <span>40+ clientes</span>
-              </div>
-            </div>
+                {/* List of active products in calculator */}
+                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                  {POPULAR_SIMULATOR_PRODUCTS.map(({ id }) => {
+                    const prod = PRODUCTS.find((p) => p.id === id);
+                    if (!prod) return null;
+                    const qty = selectedProductQuantities[id] || 0;
+                    const margin = Number((prod.pricePublic - prod.pricePartner).toFixed(2));
+                    const subtotal = Number((margin * qty).toFixed(2));
 
-            {/* Slider: Socios de equipo */}
-            <div className="space-y-2 bg-slate-800/60 p-4 rounded-2xl border border-slate-700">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-300 font-bold">Nuevos Socios Directos en tu Equipo:</span>
-                <span className="text-emerald-400 font-black text-base">{directPartners} socios</span>
+                    return (
+                      <div
+                        key={id}
+                        className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                          qty > 0
+                            ? 'bg-slate-800/90 border-emerald-500/40'
+                            : 'bg-slate-800/40 border-slate-800 opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={prod.image}
+                            alt={prod.name}
+                            className="w-11 h-11 object-contain rounded-lg bg-white/10 p-1 shrink-0"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              if (prod.fallbackImage && e.currentTarget.src !== prod.fallbackImage) {
+                                e.currentTarget.src = prod.fallbackImage;
+                              }
+                            }}
+                          />
+                          <div>
+                            <h5 className="font-bold text-xs text-white leading-tight">{prod.name}</h5>
+                            <div className="flex items-center gap-2 text-[11px] text-slate-300 mt-1">
+                              <span>P. Público: <strong className="text-white">${prod.pricePublic.toFixed(2)}</strong></span>
+                              <span>•</span>
+                              <span>P. Socio: <strong className="text-emerald-400">${prod.pricePartner.toFixed(2)}</strong></span>
+                              <span>•</span>
+                              <span className="text-amber-300 font-bold">Margen: +${margin.toFixed(2)}/u</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between w-full sm:w-auto gap-4 self-end sm:self-center">
+                          {/* Qty controls */}
+                          <div className="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-xl border border-slate-700">
+                            <button
+                              onClick={() => handleUpdateQty(id, qty - 1)}
+                              className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center font-bold text-xs"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-7 text-center font-black text-xs text-white">{qty}</span>
+                            <button
+                              onClick={() => handleUpdateQty(id, qty + 1)}
+                              className="w-6 h-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center font-bold text-xs"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {/* Subtotal */}
+                          <div className="text-right min-w-[75px]">
+                            <span className="text-[10px] text-slate-400 block">Ganancia</span>
+                            <span className="font-black text-xs text-emerald-400">${subtotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Add other products dropdown */}
+                <div className="p-3.5 rounded-2xl bg-slate-800/50 border border-slate-700 flex flex-col sm:flex-row items-center gap-3">
+                  <span className="text-xs text-slate-300 font-bold shrink-0">Agregar otro producto:</span>
+                  <select
+                    value={customProductId}
+                    onChange={(e) => setCustomProductId(Number(e.target.value))}
+                    className="w-full sm:w-auto flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    {PRODUCTS.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (Gana ${(p.pricePublic - p.pricePartner).toFixed(2)}/u)
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={customProductQty}
+                      onChange={(e) => setCustomProductQty(Math.max(1, Number(e.target.value)))}
+                      className="w-16 bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 text-xs text-center text-white"
+                    />
+                    <button
+                      onClick={handleAddCustomProduct}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Agregar
+                    </button>
+                  </div>
+                </div>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="20"
-                step="1"
-                value={directPartners}
-                onChange={(e) => setDirectPartners(Number(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400">
-                <span>0 socios</span>
-                <span>10 socios</span>
-                <span>20 socios</span>
+            ) : (
+              /* Tab 2: Bonos de Inicio Rápido ($5 Prejunior, $10 Junior, $30 Senior, $60 Master hasta 2 niveles) */
+              <div className="space-y-6">
+                <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 text-xs text-emerald-200">
+                  <strong>Estructura oficial de Bonos de Inicio:</strong>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 font-mono">
+                    <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Prejunior: <strong>$5.00</strong></span>
+                    <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Junior: <strong>$10.00</strong></span>
+                    <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Senior: <strong>$30.00</strong></span>
+                    <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Master: <strong>$60.00</strong></span>
+                  </div>
+                  <span className="block mt-2 text-[11px] text-slate-300">
+                    *Ganas estos valores por cada nuevo socio afiliado en tu organización hasta en dos niveles de profundidad.
+                  </span>
+                </div>
+
+                {/* Level 1: Directos */}
+                <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-emerald-400" />
+                        Nivel 1: Tus Nuevos Socios Directos
+                      </h4>
+                      <span className="text-[11px] text-slate-400">Personas que registras directamente contigo</span>
+                    </div>
+                    <span className="text-xs font-black text-emerald-400 bg-slate-900 px-2.5 py-1 rounded-xl">
+                      Subtotal: ${bonusLevel1.toFixed(2)} USD
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                    {/* Prejunior Level 1 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Prejunior ($5)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, prejunior: Math.max(0, p.prejunior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-emerald-400">{level1.prejunior}</span>
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, prejunior: p.prejunior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level1.prejunior * BONUS_RATES.prejunior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Junior Level 1 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Junior ($10)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, junior: Math.max(0, p.junior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-emerald-400">{level1.junior}</span>
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, junior: p.junior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level1.junior * BONUS_RATES.junior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Senior Level 1 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Senior ($30)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, senior: Math.max(0, p.senior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-emerald-400">{level1.senior}</span>
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, senior: p.senior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level1.senior * BONUS_RATES.senior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Master Level 1 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-emerald-500/40 bg-emerald-950/20 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-emerald-300 font-bold">Master ($60)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, master: Math.max(0, p.master - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-emerald-300">{level1.master}</span>
+                        <button
+                          onClick={() => setLevel1((p) => ({ ...p, master: p.master + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-xs flex items-center justify-center text-slate-950 font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-emerald-400 block text-center">
+                        = ${(level1.master * BONUS_RATES.master).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Level 2: Duplicación de Equipo */}
+                <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-extrabold text-sm text-white flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-teal-400" />
+                        Nivel 2: Socios Afiliados por tu Equipo
+                      </h4>
+                      <span className="text-[11px] text-slate-400">Duplicación de tu red hasta segundo nivel</span>
+                    </div>
+                    <span className="text-xs font-black text-teal-300 bg-slate-900 px-2.5 py-1 rounded-xl">
+                      Subtotal: ${bonusLevel2.toFixed(2)} USD
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                    {/* Prejunior Level 2 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Prejunior ($5)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, prejunior: Math.max(0, p.prejunior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-teal-400">{level2.prejunior}</span>
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, prejunior: p.prejunior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level2.prejunior * BONUS_RATES.prejunior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Junior Level 2 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Junior ($10)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, junior: Math.max(0, p.junior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-teal-400">{level2.junior}</span>
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, junior: p.junior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level2.junior * BONUS_RATES.junior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Senior Level 2 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700/80 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-slate-300 font-bold">Senior ($30)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, senior: Math.max(0, p.senior - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-teal-400">{level2.senior}</span>
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, senior: p.senior + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-teal-600 hover:bg-teal-500 text-xs flex items-center justify-center text-white"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-slate-400 block text-center">
+                        = ${(level2.senior * BONUS_RATES.senior).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {/* Master Level 2 */}
+                    <div className="bg-slate-900/80 p-2.5 rounded-xl border border-teal-500/40 bg-teal-950/20 space-y-1.5">
+                      <div className="flex justify-between text-[11px]">
+                        <span className="text-teal-300 font-bold">Master ($60)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, master: Math.max(0, p.master - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm text-teal-300">{level2.master}</span>
+                        <button
+                          onClick={() => setLevel2((p) => ({ ...p, master: p.master + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-teal-500 hover:bg-teal-400 text-xs flex items-center justify-center text-slate-950 font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[10px] text-teal-400 block text-center">
+                        = ${(level2.master * BONUS_RATES.master).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Results Card */}
-          <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-800 to-slate-900 border border-emerald-500/40 shadow-xl space-y-4 text-center flex flex-col justify-between">
+          <div className="p-6 rounded-3xl bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border border-emerald-500/40 shadow-2xl space-y-5 text-center flex flex-col justify-between">
             <div className="space-y-2">
               <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-widest block">
-                Ingreso Estimado Mensual
+                Total Ingreso Estimado Mensual
               </span>
               <div className="text-3xl sm:text-4xl font-black text-white text-emerald-300">
-                ${estimatedMonthlyIncome.toLocaleString()} <span className="text-sm font-bold text-slate-400">USD</span>
+                ${totalEstimatedIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                <span className="text-sm font-bold text-slate-400">USD</span>
               </div>
               <p className="text-[11px] text-slate-400">
-                *Cálculo mensual acumulativo combinando venta al por menor y bonos de red.
+                Suma de margen comercial directo + bonos de inicio de red hasta nivel 2.
               </p>
             </div>
 
-            <div className="pt-3 border-t border-slate-700 space-y-1.5 text-xs text-left">
-              <div className="flex justify-between text-slate-300">
-                <span>Ganancia Venta Directa:</span>
-                <strong className="text-white">${retailProfit} USD</strong>
+            {/* Detailed itemized breakdown */}
+            <div className="pt-4 border-t border-slate-700 space-y-2 text-xs text-left">
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Venta Directa ({retailProfitBreakdown.totalItems} unidades):</span>
+                <strong className="text-white font-mono font-black">${retailProfitBreakdown.totalProfit.toFixed(2)} USD</strong>
               </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Bono Inicio y Desarrollo:</span>
-                <strong className="text-emerald-400">${networkBonus} USD</strong>
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Bonos Inicio Nivel 1:</span>
+                <strong className="text-emerald-400 font-mono font-black">${bonusLevel1.toFixed(2)} USD</strong>
+              </div>
+              <div className="flex justify-between items-center text-slate-300">
+                <span>Bonos Inicio Nivel 2:</span>
+                <strong className="text-teal-400 font-mono font-black">${bonusLevel2.toFixed(2)} USD</strong>
+              </div>
+              <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
+                <span>Total Bonos de Equipo:</span>
+                <strong className="text-emerald-300 font-mono">${totalStartBonuses.toFixed(2)} USD</strong>
               </div>
             </div>
 
             <button
               onClick={onOpenRegisterModal}
-              className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
             >
               <span>Quiero Iniciar mi Negocio HGW</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            <div className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Patrocinador Oficial: {SPONSOR_INFO.name} ({SPONSOR_INFO.code})</span>
+            </div>
           </div>
         </div>
       </div>
@@ -248,15 +723,15 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegister
 
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">2. Inicio Rápido</span>
-            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">20% hasta 2 Niveles</h4>
+            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">$5, $10, $30 y $60 hasta 2 Niveles</h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Cobras el 20% del valor BV por cada nuevo socio que afilies en tu organización (con Ganancia Mutua 50/50).
+              Ganas $5.00 por Prejunior, $10 por Junior, $30 por Senior y $60 por Master tanto en directos como en duplicación de equipo.
             </p>
           </div>
 
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase">3. Bono de Desarrollo</span>
-            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Hasta $1.00 en 10 Niveles</h4>
+            <h4 className="font-extrabold text-base text-slate-900 dark:text-white">Hasta $3.00 en 10 Niveles</h4>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Ganas micropagos por cada posición que se active en tu matriz hasta 10 niveles de profundidad sin candados.
             </p>
