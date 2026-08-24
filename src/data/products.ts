@@ -903,8 +903,8 @@ export const PRODUCTS: Product[] = [
     pricePublic: 8.58,
     pricePartner: 6.00,
     bv: 1.20,
-    image: 'https://lh3.googleusercontent.com/d/15sCBYw7djn_eJqvUZvRQZVlccsp4Gxv5',
-    fallbackImage: 'https://lh3.googleusercontent.com/d/1bF3G97NO_XRwR41uWi26lMvNq5qTz3hh',
+    image: 'https://lh3.googleusercontent.com/d/1OrnKTe8u3eFqkYJ7ucQ6C3BcNiBHVRm6',
+    fallbackImage: 'https://lh3.googleusercontent.com/d/1OrnKTe8u3eFqkYJ7ucQ6C3BcNiBHVRm6',
     presentation: 'Caja con 24 unidades en variados tamaños + adhesivos',
     benefits: [
       'Manicura perfecta de salón en menos de 5 minutos en casa',
@@ -957,8 +957,8 @@ export const PRODUCTS: Product[] = [
     pricePublic: 50.00,
     pricePartner: 35.00,
     bv: 21.00,
-    image: 'https://lh3.googleusercontent.com/d/14pCWpxdnmKIe1QU8cYVHINI7z-jBbVZ8',
-    fallbackImage: 'https://lh3.googleusercontent.com/d/1vU6gLcV22ncnf5cCiQUR-kvXdrhnKdtp',
+    image: 'https://lh3.googleusercontent.com/d/1HAB5j8wJlW3qAg2p99Ukhkxwl4yJtonJ',
+    fallbackImage: 'https://lh3.googleusercontent.com/d/1HAB5j8wJlW3qAg2p99Ukhkxwl4yJtonJ',
     presentation: '1 unidad con cordón ajustable y tarjeta de autenticidad',
     benefits: [
       'Potente escudo contra la radiación de ondas electromagnéticas 4G/5G y routers',
@@ -1173,8 +1173,8 @@ export const PRODUCTS: Product[] = [
     pricePublic: 89.00,
     pricePartner: 62.00,
     bv: 18.60,
-    image: 'https://lh3.googleusercontent.com/d/1mlKpPuWYBqyEhs9pqjLhF-WEfYFxqzR3',
-    fallbackImage: 'https://lh3.googleusercontent.com/d/1mlKpPuWYBqyEhs9pqjLhF-WEfYFxqzR3',
+    image: 'https://lh3.googleusercontent.com/d/1fpUgxErX0MQhzbjJ2u2U-wdeZYXpJmhr',
+    fallbackImage: 'https://lh3.googleusercontent.com/d/1fpUgxErX0MQhzbjJ2u2U-wdeZYXpJmhr',
     presentation: '1 unidad con funda hipoalergénica lavable',
     benefits: [
       'Soporte ergonómico cervical que previene dolores de cuello y tortícolis',
