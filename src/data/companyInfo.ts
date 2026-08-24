@@ -26,21 +26,21 @@ export const COMPANY_INFO = {
   leadership: [
     {
       name: 'Dra. Deming Li',
-      title: 'Presidente de Green World Group',
-      bio: 'Doctorado en Biología en Cornell University, EE.UU. Doctorado en la Universidad de Wisconsin, EE.UU. Investigadora del Instituto de Michigan. Miembro de la Blueberry Association en América del Norte y Vicepresidente del Consejo de la Asociación de Salud de Tianjin.',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/HGW-Dr.-Deming-Li-Presidente-de-Green-World-Group.webp'
+      title: 'Presidente Fundadora de Green World Group',
+      bio: 'Doctorado en Biología en Cornell University, EE.UU. y postdoctorado en la Universidad de Wisconsin, EE.UU. Investigadora de renombre mundial en el Instituto de Michigan. Miembro de la North American Blueberry Association y Vicepresidenta del Consejo de la Asociación de Salud de Tianjin.',
+      image: 'https://lh3.googleusercontent.com/d/1ECNGtx5tWWd-gZXqwRocziXkBdJipyx9'
     },
     {
       name: 'Mr. Peter Li',
       title: 'Vicepresidente Global Green World & CEO Latinoamérica',
-      bio: 'Más de 18 años de destacada experiencia en Network Marketing y expansión internacional. Egresado en Ciencias Políticas y Derecho.',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/HGW-Peter-Li.webp'
+      bio: 'Más de 18 años de destacada experiencia en liderazgo de redes, expansión multinacional y dirección estratégica del Plan de Ganancia Mutua en Latinoamérica y el mundo.',
+      image: 'https://lh3.googleusercontent.com/d/1s332KyXrR0-SCivwh_cAgdVJfmSRYGnj'
     },
     {
       name: 'Yamilka Batista',
       title: 'Networker Digital & Líder HGW Panamá',
-      bio: 'Distribuidora Independiente y asesora especializada en el Plan de Ganancia Mutua y productos de bienestar HGW en Panamá.',
-      image: 'https://hgwpanama.com/wp-content/uploads/Foto-de-perfil-Yamilka-Batista-HGW.png',
+      bio: 'Distribuidora Independiente y líder oficial HGW Panamá. Especialista en asesoría del Plan de Ganancia Mutua 50/50 y recomendación clínica de fitonutrientes y bienestar integral.',
+      image: 'https://lh3.googleusercontent.com/d/1KeOPcyuhctKp1qJsNsfw-nlUuXzyU_hf',
       code: 'Yamilka507'
     }
   ],

@@ -8,6 +8,7 @@ interface HeaderProps {
   cartBV: number;
   onOpenCart: () => void;
   onOpenMemberships: () => void;
+  onOpenBusiness?: () => void;
   selectedCategory: ProductCategory;
   onSelectCategory: (cat: ProductCategory) => void;
   searchQuery: string;
@@ -33,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
   cartBV,
   onOpenCart,
   onOpenMemberships,
+  onOpenBusiness,
   selectedCategory,
   onSelectCategory,
   searchQuery,
@@ -41,6 +43,15 @@ export const Header: React.FC<HeaderProps> = ({
   onTogglePartnerMode
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleScrollToBusiness = () => {
+    if (onOpenBusiness) {
+      onOpenBusiness();
+    } else {
+      const el = document.getElementById('negocio-hgw-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
@@ -127,6 +138,16 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Tag className="w-3.5 h-3.5 text-emerald-600" />
               <span>{isPartnerMode ? 'Vista: Precio Socio (-30%)' : 'Vista: Precio Público'}</span>
+            </button>
+
+            {/* Plan de Negocio CTA */}
+            <button
+              id="btn-nav-plan-negocio"
+              onClick={handleScrollToBusiness}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 text-slate-800 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Oportunidad Negocio</span>
             </button>
 
             {/* Elegir Membresía CTA */}

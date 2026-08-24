@@ -5,6 +5,7 @@ import { BVProgressBar } from './components/BVProgressBar';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { MembershipSection } from './components/MembershipSection';
+import { BusinessSection } from './components/BusinessSection';
 import { RegistrationModal } from './components/RegistrationModal';
 import { CartDrawer } from './components/CartDrawer';
 import { HealthProtocolsSection } from './components/HealthProtocolsSection';
@@ -107,6 +108,11 @@ export default function App() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToBusiness = () => {
+    const el = document.getElementById('negocio-hgw-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   // Filtered Products
   const filteredProducts = useMemo(() => {
     return PRODUCTS.filter((product) => {
@@ -150,6 +156,7 @@ export default function App() {
         cartBV={totalCartBV}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenMemberships={scrollToMemberships}
+        onOpenBusiness={scrollToBusiness}
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => {
           setSelectedCategory(cat);
@@ -162,11 +169,13 @@ export default function App() {
       />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        {/* Hero Section */}
-        <HeroBanner
-          onExploreProducts={scrollToCatalog}
-          onOpenMemberships={scrollToMemberships}
-        />
+        {/* Hero Section: Se oculta automáticamente cuando se escribe en el buscador */}
+        {!searchQuery.trim() && (
+          <HeroBanner
+            onExploreProducts={scrollToCatalog}
+            onOpenMemberships={scrollToMemberships}
+          />
+        )}
 
         {/* Real-time Gamified BV Progress Bar */}
         <div className="my-6">
@@ -177,13 +186,15 @@ export default function App() {
           />
         </div>
 
-        {/* Health Focus / Clinical Protocols */}
-        <HealthProtocolsSection
-          onSelectHealthFocus={(focusTitle) => {
-            setHealthFocusFilter(focusTitle);
-            scrollToCatalog();
-          }}
-        />
+        {/* Health Focus / Clinical Protocols (se muestra cuando no hay búsqueda activa) */}
+        {!searchQuery.trim() && (
+          <HealthProtocolsSection
+            onSelectHealthFocus={(focusTitle) => {
+              setHealthFocusFilter(focusTitle);
+              scrollToCatalog();
+            }}
+          />
+        )}
 
         {/* Main Products Catalog Section */}
         <section id="catalogo-section" className="my-10 space-y-6">
@@ -274,7 +285,10 @@ export default function App() {
         {/* Video Shorts Gallery */}
         <VideoShortsGallery />
 
-        {/* Memberships & Compensation Plan Section */}
+        {/* Dedicated Business Opportunity & Compensation Simulator */}
+        <BusinessSection onOpenRegisterModal={handleOpenGeneralRegistration} />
+
+        {/* Memberships & Compensation Plan Packages */}
         <MembershipSection onSelectPlan={handleSelectPlan} />
 
         {/* Quality Certifications & International Associations */}

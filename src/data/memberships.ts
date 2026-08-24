@@ -8,6 +8,7 @@ export const SPONSOR_INFO: SponsorInfo = {
   email: 'info@negociohgw.com',
   phone: '+507 6778-8375',
   whatsapp: '+50767788375',
+  image: 'https://lh3.googleusercontent.com/d/1KeOPcyuhctKp1qJsNsfw-nlUuXzyU_hf',
   registrationUrl: 'https://www.healthgreenworld.com/?userName=Yamilka507',
   videoTutorialUrl: 'https://www.youtube.com/watch?v=cR-aHkU9N4A&t=5s',
   youtubeEmbedId: 'cR-aHkU9N4A'

@@ -72,6 +72,7 @@ export interface SponsorInfo {
   email: string;
   phone: string;
   whatsapp: string;
+  image?: string;
   registrationUrl: string;
   videoTutorialUrl: string;
   youtubeEmbedId: string;

@@ -104,26 +104,36 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               Datos de tu Patrocinador Oficial HGW Panamá
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-              <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                <span className="text-slate-400 block text-[11px]">Patrocinador / Asesor:</span>
-                <strong className="text-white text-sm">{SPONSOR_INFO.name}</strong>
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-900/90 p-3.5 rounded-xl border border-slate-800">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border-2 border-emerald-500/50 shrink-0">
+                <img
+                  src={SPONSOR_INFO.image || 'https://lh3.googleusercontent.com/d/1KeOPcyuhctKp1qJsNsfw-nlUuXzyU_hf'}
+                  alt={SPONSOR_INFO.name}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                />
               </div>
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full text-xs">
+                <div className="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
+                  <span className="text-slate-400 block text-[10px]">Patrocinador / Asesor:</span>
+                  <strong className="text-white text-xs sm:text-sm font-extrabold">{SPONSOR_INFO.name}</strong>
+                </div>
 
-              <div className="bg-slate-900/80 p-3 rounded-lg border border-emerald-500/40">
-                <span className="text-emerald-400 block text-[11px] font-semibold">Código de Patrocinio:</span>
-                <strong className="text-emerald-300 text-base font-mono tracking-wider">{SPONSOR_INFO.code}</strong>
-              </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-lg border border-emerald-500/40">
+                  <span className="text-emerald-400 block text-[10px] font-semibold">Código de Patrocinio:</span>
+                  <strong className="text-emerald-300 text-sm sm:text-base font-mono tracking-wider">{SPONSOR_INFO.code}</strong>
+                </div>
 
-              <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                <span className="text-slate-400 block text-[11px]">País de Registro:</span>
-                <strong className="text-white text-sm flex items-center gap-1.5">
-                  <span>🇵🇦</span> {SPONSOR_INFO.country}
-                </strong>
+                <div className="bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
+                  <span className="text-slate-400 block text-[10px]">País de Registro:</span>
+                  <strong className="text-white text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>🇵🇦</span> {SPONSOR_INFO.country}
+                  </strong>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300 pt-1">
               <div className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-emerald-400" />
                 <span>WhatsApp: <strong>{SPONSOR_INFO.phone}</strong></span>
