@@ -1,0 +1,6 @@
+{
+  "name": "HGW Tienda Online - Health Green World Panamá",
+  "description": "Tienda online oficial y catálogo de productos HGW con precios al público, membresías y precios de socio desde 50 BV.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
