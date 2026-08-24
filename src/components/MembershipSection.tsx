@@ -34,35 +34,35 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({ onSelectPl
 
           {/* Sub Navigation */}
           <div className="flex justify-center pt-3">
-            <div className="inline-flex p-1 bg-slate-800/90 rounded-2xl border border-slate-700">
+            <div className="flex flex-wrap items-center justify-center p-1 bg-slate-800/90 rounded-2xl border border-slate-700 gap-1">
               <button
                 id="tab-btn-planes"
                 onClick={() => setActiveTab('planes')}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                   activeTab === 'planes'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
-                1. Paquetes de Membresía
+                1. Paquetes
               </button>
               <button
                 id="tab-btn-bonos"
                 onClick={() => setActiveTab('bonos')}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                   activeTab === 'bonos'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
-                2. Los 7 Bonos HGW
+                2. Los 7 Bonos
               </button>
               <button
                 id="tab-btn-rangos"
                 onClick={() => setActiveTab('rangos')}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                   activeTab === 'rangos'
-                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >

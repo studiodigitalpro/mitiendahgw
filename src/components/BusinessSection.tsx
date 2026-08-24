@@ -224,50 +224,48 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegister
       </div>
 
       {/* Interactive Business Calculator */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white border border-emerald-500/30 shadow-2xl space-y-8">
+      <div className="p-4 sm:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white border border-emerald-500/30 shadow-2xl space-y-6 sm:space-y-8">
         {/* Calculator Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
-          <div>
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-              <Calculator className="w-4 h-4" />
-              Calculadora Dinámica de Posibles Ganancias HGW
-            </div>
-            <h3 className="text-2xl font-black text-white mt-1">
-              Simula tus Ganancias por Ventas y Bonos de Inicio
-            </h3>
+        <div className="text-center space-y-2 border-b border-slate-800 pb-5 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-800/60">
+            <Calculator className="w-4 h-4" />
+            Calculadora Dinámica de Posibles Ganancias HGW
           </div>
-          <span className="text-xs text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1.5 rounded-xl self-start md:self-auto">
-            Margen exacto (P. Público - P. Socio) + Bonos hasta 2 niveles
-          </span>
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white">
+            Simula tus Ganancias por Ventas y Bonos de Inicio
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-300">
+            Margen exacto (P. Público - P. Socio) + Bonos de Inicio ($5, $10, $30, $60) hasta 2 niveles
+          </p>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex gap-2 border-b border-slate-800 pb-2">
+        <div className="flex flex-col sm:flex-row gap-2 border-b border-slate-800 pb-3">
           <button
             onClick={() => setActiveCalcTab('products')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`flex-1 px-4 py-3 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
               activeCalcTab === 'products'
                 ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            1. Venta Directa (Margen por Producto)
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-900/40 text-[10px] text-white">
+            <ShoppingBag className="w-4 h-4 shrink-0" />
+            <span>1. Venta Directa (Margen por Producto)</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900/50 text-[10px] text-white font-mono">
               ${retailProfitBreakdown.totalProfit.toFixed(2)}
             </span>
           </button>
           <button
             onClick={() => setActiveCalcTab('bonuses')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`flex-1 px-4 py-3 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
               activeCalcTab === 'bonuses'
                 ? 'bg-emerald-500 text-slate-950 font-black shadow-md shadow-emerald-500/20'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            2. Bonos de Inicio ($5, $10, $30, $60 hasta 2 Niveles)
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-900/40 text-[10px] text-white">
+            <Users className="w-4 h-4 shrink-0" />
+            <span>2. Bonos de Inicio ($5, $10, $30, $60)</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-900/50 text-[10px] text-white font-mono">
               ${totalStartBonuses.toFixed(2)}
             </span>
           </button>
@@ -707,10 +705,18 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({ onOpenRegister
       </div>
 
       {/* 6 Ways of Earning in HGW */}
-      <div className="space-y-4">
-        <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-          Las 6 Formas de Ganar Dinero en HGW Panamá
-        </h3>
+      <div className="space-y-6">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            Plan de Compensación Exclusivo
+          </span>
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            Las 6 Formas de Ganar Dinero en HGW Panamá
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+            Múltiples fuentes de ingresos simultáneos: desde venta directa hasta regalías de red global.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">

@@ -202,10 +202,10 @@ export default function App() {
         {/* Main Products Catalog Section */}
         <section id="catalogo-section" className="my-10 space-y-6">
           {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 text-center sm:text-left">
+            <div className="mx-auto sm:mx-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                   Catálogo Oficial HGW Panamá
                 </span>
                 {isPartnerPricingActive && (
@@ -214,7 +214,7 @@ export default function App() {
                   </span>
                 )}
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
                 Productos Naturales & Bienestar
               </h2>
             </div>

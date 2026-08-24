@@ -224,6 +224,62 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+            <button
+              onClick={() => {
+                onTogglePartnerMode(!isPartnerMode);
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200"
+            >
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-emerald-600" />
+                <span>{isPartnerMode ? 'Ver Precio Público' : 'Ver Precio Socio (-30%)'}</span>
+              </div>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-black ${isPartnerMode ? 'bg-emerald-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>
+                {isPartnerMode ? 'ACTIVO' : 'INACTIVO'}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                handleScrollToBusiness();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 text-xs font-bold text-slate-800 dark:text-slate-200 text-left"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+              <span>Oportunidad de Negocio & Calculadora</span>
+            </button>
+
+            <button
+              onClick={() => {
+                onOpenMemberships();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-extrabold text-left shadow-md shadow-emerald-600/20"
+            >
+              <Award className="w-4 h-4" />
+              <span>Elegir Membresía HGW</span>
+            </button>
+
+            <a
+              href={`https://wa.me/${SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold"
+            >
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-emerald-600" />
+                <span>Asistencia Patrocinador ({SPONSOR_INFO.name})</span>
+              </div>
+              <span className="text-[10px] font-mono">{SPONSOR_INFO.phone}</span>
+            </a>
+          </div>
+        )}
       </div>
     </header>
   );

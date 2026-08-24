@@ -50,19 +50,17 @@ export const VideoShortsGallery: React.FC = () => {
 
   return (
     <section id="videos-shorts-section" className="my-12 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <Film className="w-4 h-4" />
-            Demostraciones Oficiales HGW Panamá
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
-            Videos & Demostraciones de Productos
-          </h2>
+      <div className="text-center space-y-2 max-w-3xl mx-auto border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase tracking-wider">
+          <Film className="w-3.5 h-3.5" />
+          Demostraciones Oficiales HGW Panamá
         </div>
-        <span className="text-xs text-slate-500 dark:text-slate-400">
-          Aprende sobre el Café con Ganoderma, Lactiberry y Fresh Drink Chang JingJing
-        </span>
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+          Videos & Demostraciones de Productos
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+          Aprende sobre el Café con Ganoderma, Lactiberry y Fresh Drink Chang JingJing con demostraciones reales.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

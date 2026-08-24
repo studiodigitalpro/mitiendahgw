@@ -62,19 +62,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   return (
     <div
       id="modal-product-detail-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
       onClick={onClose}
     >
       <div
         id="modal-product-detail-container"
-        className={`bg-white dark:bg-slate-900 text-black dark:text-white w-full ${sizeClasses} rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative my-6 transition-all duration-300 animate-in fade-in zoom-in-95`}
+        className={`bg-white dark:bg-slate-900 text-black dark:text-white w-full ${sizeClasses} rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden relative my-auto max-h-[92vh] flex flex-col transition-all duration-300 animate-in fade-in zoom-in-95`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Control Bar: Size adjusters & Close */}
-        <div className="flex items-center justify-between px-6 py-3.5 bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700/80">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-slate-100/90 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700/80 shrink-0">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-            <span className="hidden sm:inline">Ajuste de Vista:</span>
-            <div className="inline-flex bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-300 dark:border-slate-700 shadow-xs">
+            <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Detalle HGW</span>
+            <div className="hidden sm:inline-flex bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-300 dark:border-slate-700 shadow-xs">
               <button
                 type="button"
                 onClick={() => setSizeMode('compact')}
@@ -117,18 +117,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <button
             id="btn-close-product-detail"
             onClick={onClose}
-            className="bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-600 dark:text-slate-200 hover:text-red-600 p-1.5 rounded-full border border-slate-300 dark:border-slate-600 transition-colors shadow-xs"
+            className="bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-700 dark:text-slate-200 hover:text-red-600 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 transition-colors shadow-xs"
             aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 max-h-[80vh] overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-12 overflow-y-auto flex-1">
           {/* Left Column: Product Image & Quick Specs (4 cols) */}
-          <div className="md:col-span-4 bg-slate-50 dark:bg-slate-950 p-6 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
+          <div className="md:col-span-5 lg:col-span-4 bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800">
             <div className="w-full flex flex-col items-center">
-              <div className="w-full max-w-[240px] aspect-square relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 p-4 flex items-center justify-center shadow-md border border-slate-200 dark:border-slate-800">
+              <div className="w-full max-w-[200px] sm:max-w-[240px] aspect-square relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 p-3 sm:p-4 flex items-center justify-center shadow-md border border-slate-200 dark:border-slate-800">
                 <img
                   src={imgError && product.fallbackImage ? product.fallbackImage : product.image}
                   alt={product.name}
@@ -143,7 +143,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </span>
                 )}
 
-                <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/90 text-emerald-400 text-[11px] font-black rounded-md border border-emerald-500/30">
+                <span className="absolute bottom-2 right-2 px-2.5 py-1 bg-black/90 text-emerald-400 text-xs font-black rounded-lg border border-emerald-500/30">
                   {product.bv} BV
                 </span>
               </div>
@@ -166,92 +166,96 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 w-full text-center">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 w-full text-center">
+              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 flex items-center justify-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 Garantía y Registro HGW Panamá
               </span>
             </div>
           </div>
 
-          {/* Right Column: Tabs Navigation & Tab Contents (8 cols) */}
-          <div className="md:col-span-8 p-6 flex flex-col justify-between space-y-6">
+          {/* Right Column: Centered Header, Navigation Tabs & Contents (8 cols) */}
+          <div className="md:col-span-7 lg:col-span-8 p-4 sm:p-6 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
-              <div>
-                <span className="text-xs font-black tracking-wider uppercase text-emerald-600 dark:text-emerald-400">
+              {/* Centered Product Title & Subtitle */}
+              <div className="text-center space-y-1">
+                <span className="text-xs font-black tracking-wider uppercase text-emerald-600 dark:text-emerald-400 inline-block px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
                   {product.categoryLabel}
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-black text-black dark:text-white mt-0.5 leading-tight">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-black dark:text-white leading-tight">
                   {product.name}
                 </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
+                  {product.presentation} · Código oficial HGW Panamá
+                </p>
               </div>
 
-              {/* Navigation Tabs */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-slate-200 dark:border-slate-700">
+              {/* Navigation Tabs - Mobile Optimized Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <button
                   type="button"
                   onClick={() => setActiveTab('general')}
-                  className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
                     activeTab === 'general'
                       ? 'bg-white dark:bg-slate-900 text-black dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
                       : 'text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <Info className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>General & Precios</span>
+                  <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">General</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('benefits')}
-                  className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
                     activeTab === 'benefits'
                       ? 'bg-white dark:bg-slate-900 text-black dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
                       : 'text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <HeartPulse className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Beneficios ({product.benefits?.length || 0})</span>
+                  <HeartPulse className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">Beneficios</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('ingredients')}
-                  className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
                     activeTab === 'ingredients'
                       ? 'bg-white dark:bg-slate-900 text-black dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
                       : 'text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <Package className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Ingredientes</span>
+                  <Package className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">Ingredientes</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('usage')}
-                  className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
                     activeTab === 'usage'
                       ? 'bg-white dark:bg-slate-900 text-black dark:text-white shadow-sm border border-slate-200 dark:border-slate-700'
                       : 'text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Uso & Dosis</span>
+                  <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">Uso & Dosis</span>
                 </button>
               </div>
 
               {/* TAB 1: General & Precios */}
               {activeTab === 'general' && (
                 <div className="space-y-4 animate-in fade-in-50 duration-200">
-                  <p className="text-black dark:text-slate-200 text-sm leading-relaxed font-medium bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <p className="text-black dark:text-slate-200 text-xs sm:text-sm leading-relaxed font-medium bg-slate-50 dark:bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-center sm:text-left">
                     {product.description || product.shortDescription}
                   </p>
 
                   {/* Price Box: PRECIO PÚBLICO DESTACADO PRIMERO, LUEGO PRECIO SOCIO */}
-                  <div className="space-y-2.5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                  <div className="space-y-2.5 p-3 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
                     {/* 1. Precio Público Destacado */}
-                    <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-xs">
+                    <div className="p-3 sm:p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between shadow-xs">
                       <div>
                         <span className="text-xs font-black text-slate-800 dark:text-slate-300 uppercase tracking-wider block">
                           Precio Público Oficial:
@@ -263,16 +267,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           <span className="text-xs font-bold text-slate-500">USD</span>
                         </div>
                       </div>
-                      <span className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-black dark:text-white text-xs font-black border border-slate-300 dark:border-slate-700">
+                      <span className="px-2.5 sm:px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-black dark:text-white text-xs font-black border border-slate-300 dark:border-slate-700">
                         Venta Regular
                       </span>
                     </div>
 
-                    {/* 2. Precio Socio (Después) */}
-                    <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-between">
+                    {/* 2. Precio Socio */}
+                    <div className="p-3 sm:p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-600/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <span className="text-xs font-black text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5 uppercase tracking-wider">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                           Precio Socio (-30% Descuento):
                         </span>
                         <div className="flex items-baseline gap-1 mt-0.5">
@@ -282,18 +286,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">USD</span>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="self-start sm:self-center">
                         <span className="inline-block px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-black shadow-sm">
                           Ahorras ${savings.toFixed(2)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 pt-1">
-                      <span className="font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-700 dark:text-slate-300 pt-1 gap-1">
+                      <span className="font-medium text-center sm:text-left">
                         {isPartnerTier ? '✅ Tu orden califica con 50+ BV (Precio Socio aplicado)' : '💡 Acumula 50 BV en tu carrito para activar el Precio Socio'}
                       </span>
-                      <span className="font-black text-emerald-600 dark:text-emerald-400">{product.bv} BV</span>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400 text-center sm:text-right">{product.bv} BV</span>
                     </div>
                   </div>
                 </div>
@@ -379,35 +383,40 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
 
             {/* Add to Cart Footer */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center gap-4">
-              <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-black transition-colors"
-                >
-                  -
-                </button>
-                <span className="px-4 py-2 font-black text-sm text-black dark:text-white min-w-[2rem] text-center">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-black transition-colors"
-                >
-                  +
-                </button>
+            <div className="pt-3 sm:pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center justify-between sm:justify-start border border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800">
+                <span className="text-xs font-bold text-slate-500 px-3 sm:hidden">Cantidad:</span>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-black transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center text-base"
+                    aria-label="Disminuir cantidad"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 py-2 font-black text-base text-black dark:text-white min-w-[2.5rem] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-black transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center text-base"
+                    aria-label="Aumentar cantidad"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
               <button
                 id="btn-modal-add-to-cart"
                 type="button"
                 onClick={handleAdd}
-                className="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2"
+                className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 min-h-[44px]"
               >
-                <ShoppingBag className="w-5 h-5" />
-                <span>Añadir al Carrito ({Number((quantity * product.bv).toFixed(2))} BV)</span>
+                <ShoppingBag className="w-5 h-5 shrink-0" />
+                <span className="truncate">Añadir al Carrito ({Number((quantity * product.bv).toFixed(2))} BV)</span>
               </button>
             </div>
           </div>
