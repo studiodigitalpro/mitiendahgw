@@ -161,6 +161,9 @@ export default function App() {
         onSelectCategory={(cat) => {
           setSelectedCategory(cat);
           setHealthFocusFilter(null);
+          if (cat !== 'todos') {
+            scrollToCatalog();
+          }
         }}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -169,8 +172,8 @@ export default function App() {
       />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        {/* Hero Section: Se oculta automáticamente cuando se escribe en el buscador */}
-        {!searchQuery.trim() && (
+        {/* Hero Section: Se oculta automáticamente cuando se busca, cuando se elige una categoría de productos o cuando se activa un filtro clínico */}
+        {!searchQuery.trim() && selectedCategory === 'todos' && !healthFocusFilter && (
           <HeroBanner
             onExploreProducts={scrollToCatalog}
             onOpenMemberships={scrollToMemberships}
@@ -186,8 +189,8 @@ export default function App() {
           />
         </div>
 
-        {/* Health Focus / Clinical Protocols (se muestra cuando no hay búsqueda activa) */}
-        {!searchQuery.trim() && (
+        {/* Health Focus / Clinical Protocols (se muestra en vista general sin búsqueda ni categoría específica) */}
+        {!searchQuery.trim() && selectedCategory === 'todos' && !healthFocusFilter && (
           <HealthProtocolsSection
             onSelectHealthFocus={(focusTitle) => {
               setHealthFocusFilter(focusTitle);
