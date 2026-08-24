@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/marketplacepanam/public_html/hgwpanama/
+    - /bin/cp -R . $DEPLOYPATH
