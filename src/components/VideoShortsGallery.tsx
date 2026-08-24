@@ -6,42 +6,40 @@ interface VideoItem {
   title: string;
   category: string;
   description: string;
-  src: string;
-  thumbnail: string;
-  duration: string;
+  drivePreviewUrl: string;
+  driveViewUrl: string;
+  fileId: string;
 }
 
 export const VideoShortsGallery: React.FC = () => {
-  const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
-
-  // Varied list of demonstration and educational video shorts
+  // 3 official Google Drive demonstration videos provided by user
   const videos: VideoItem[] = [
     {
-      id: 'short1',
-      title: 'Arándano Canadiense & Serie Candy HGW',
-      category: 'Antioxidantes & Visión',
-      description: 'Descubre cómo los caramelos y extractos de arándano en frío protegen tu vista de la luz azul y el envejecimiento celular.',
-      src: 'https://hgwpanama.com/wp-content/uploads/2026/08/BLUBERRY-CANDY-SHORT1.mp4',
-      thumbnail: 'https://hgwpanama.com/wp-content/uploads/2026/08/thumbnail-MrD1MIwrIdM-1280x720-1.jpg',
-      duration: '0:58'
+      id: 'video-ganoderma',
+      title: 'Café con Ganoderma HGW',
+      category: 'Bebidas Saludables & Inmunidad',
+      description: 'Descubre los beneficios del hongo Ganoderma Lucidum en sinergia con el café soluble premium para fortalecer tus defensas y energía diaria.',
+      drivePreviewUrl: 'https://drive.google.com/file/d/1QmaM0rvyxrI-6iX23fQhWkjYiUG1SK8m/preview',
+      driveViewUrl: 'https://drive.google.com/file/d/1QmaM0rvyxrI-6iX23fQhWkjYiUG1SK8m/view?usp=sharing',
+      fileId: '1QmaM0rvyxrI-6iX23fQhWkjYiUG1SK8m'
     },
     {
-      id: 'short2',
-      title: 'Terapia con Turmalina & Fajas Térmicas 6G',
-      category: 'Terapia & Bienestar Físico',
-      description: 'Demostración de los iones negativos y el calor infrarrojo lejano de la turmalina para aliviar dolores musculares y lumbares.',
-      src: 'https://hgwpanama.com/wp-content/uploads/2026/08/BLUBERRY-CANDY-SHORT2.mp4',
-      thumbnail: 'https://hgwpanama.com/wp-content/uploads/2026/08/thumbnail-y06POcZzF58-1280x720-1.jpg',
-      duration: '1:12'
+      id: 'video-lactiberry',
+      title: 'Lactiberry Té Negro Cremoso',
+      category: 'Nutrición Funcional & Digestión',
+      description: 'Preparación y propiedades de Lactiberry con extracto de arándano y té negro para la salud celular y el equilibrio digestivo.',
+      drivePreviewUrl: 'https://drive.google.com/file/d/1rhzzTq67ATmRxb85mJzkzp7AYgWv060i/preview',
+      driveViewUrl: 'https://drive.google.com/file/d/1rhzzTq67ATmRxb85mJzkzp7AYgWv060i/view?usp=sharing',
+      fileId: '1rhzzTq67ATmRxb85mJzkzp7AYgWv060i'
     },
     {
-      id: 'short3',
-      title: 'Plan de Negocio & Ganancia Mutua 50/50 HGW',
-      category: 'Oportunidad de Emprendimiento',
-      description: 'Conoce cómo funciona el revolucionario plan patentado de HGW donde ganas comisiones tanto de tu equipo como de tu patrocinador.',
-      src: 'https://hgwpanama.com/wp-content/uploads/2026/08/BLUBERRY-CANDY-SHORT3.mp4',
-      thumbnail: 'https://hgwpanama.com/wp-content/uploads/2026/08/thumbnail-mTb2gAti6rI-1280x720-1.jpg',
-      duration: '1:45'
+      id: 'video-chang-jin-jin',
+      title: 'Fresh Drink Chang JingJing',
+      category: 'Desintoxicación & Limpieza Intestinal',
+      description: 'Demostración de la bebida efervescente Chang JingJing para limpiar el colon, eliminar toxinas acumuladas y revitalizar la microbiota.',
+      drivePreviewUrl: 'https://drive.google.com/file/d/1Wgwm11j5qbcLcmroRaD1Vkp5OpxlV7iz/preview',
+      driveViewUrl: 'https://drive.google.com/file/d/1Wgwm11j5qbcLcmroRaD1Vkp5OpxlV7iz/view?usp=sharing',
+      fileId: '1Wgwm11j5qbcLcmroRaD1Vkp5OpxlV7iz'
     }
   ];
 
@@ -56,14 +54,14 @@ export const VideoShortsGallery: React.FC = () => {
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
             <Film className="w-4 h-4" />
-            Demostraciones & Experiencias HGW
+            Demostraciones Oficiales HGW Panamá
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
-            Videos, Testimonios & Demostraciones
+            Videos & Demostraciones de Productos
           </h2>
         </div>
         <span className="text-xs text-slate-500 dark:text-slate-400">
-          Aprende sobre el poder del arándano, la turmalina y el plan de negocio en acción
+          Aprende sobre el Café con Ganoderma, Lactiberry y Fresh Drink Chang JingJing
         </span>
       </div>
 
@@ -71,30 +69,44 @@ export const VideoShortsGallery: React.FC = () => {
         {videos.map((vid) => (
           <div
             key={vid.id}
-            className="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-lg group relative flex flex-col justify-between hover:border-emerald-500/50 transition-all duration-300"
+            className="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shadow-xl group relative flex flex-col justify-between hover:border-emerald-500/50 transition-all duration-300"
           >
+            {/* Embedded Google Drive Video Frame */}
             <div className="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
-              <video
-                src={vid.src}
-                controls
-                playsInline
-                preload="metadata"
-                className="w-full h-full object-cover"
-                poster={vid.thumbnail}
+              <iframe
+                src={vid.drivePreviewUrl}
+                title={vid.title}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
               />
-              <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[10px] font-mono font-bold text-white">
-                {vid.duration}
-              </div>
             </div>
 
-            <div className="p-4 space-y-2 bg-slate-900">
-              <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                {vid.category}
-              </span>
-              <h3 className="font-bold text-sm text-white leading-snug">{vid.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
-                {vid.description}
-              </p>
+            <div className="p-4 space-y-2 bg-slate-900 flex-1 flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    {vid.category}
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm text-white leading-snug">{vid.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+                  {vid.description}
+                </p>
+              </div>
+
+              <div className="pt-3 mt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                <a
+                  href={vid.driveViewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 hover:underline text-[11px]"
+                >
+                  <span>Abrir en Google Drive</span>
+                  <Play className="w-3 h-3 fill-current" />
+                </a>
+                <span className="text-[10px] text-slate-500 font-mono">HGW Panamá</span>
+              </div>
             </div>
           </div>
         ))}
