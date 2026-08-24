@@ -108,7 +108,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             {/* Product Center Preview */}
             <div className="my-auto text-center space-y-3">
               <img
-                src="https://hgwpanama.com/wp-content/uploads/2026/08/BLUEBERRY-CANDY-HGW.webp"
+                src="https://lh3.googleusercontent.com/d/1eTFs4b9a7wEIsAkODOfnbDNoVFtQctAD"
                 alt="Blueberry Candy HGW"
                 referrerPolicy="no-referrer"
                 className="w-40 h-40 object-contain mx-auto transform hover:scale-110 transition-transform duration-300"

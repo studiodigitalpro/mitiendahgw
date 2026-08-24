@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from './components/Header';
 import { HeroBanner } from './components/HeroBanner';
 import { BVProgressBar } from './components/BVProgressBar';
@@ -19,6 +19,66 @@ import { Product, CartItem, ProductCategory, MembershipPlan } from './types';
 import { MessageCircle, Sparkles, Filter, X, ArrowUp, ShoppingBag } from 'lucide-react';
 
 export default function App() {
+  // Content protection against copying, downloading images, and context menu
+  useEffect(() => {
+    // Prevent right click / context menu
+    const handleContextMenu = (e: MouseEvent) => {
+      // Allow right click if clicking on an input/textarea if needed, otherwise prevent
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+      e.preventDefault();
+    };
+
+    // Prevent dragging images or text
+    const handleDragStart = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    // Prevent copy/cut outside form controls
+    const handleCopyCut = (e: ClipboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      if (!isInput) {
+        e.preventDefault();
+      }
+    };
+
+    // Prevent shortcut keys like Ctrl+S (Save), Ctrl+U (Source), Ctrl+C (outside inputs), etc.
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+      if (isCtrlOrCmd) {
+        const key = e.key.toLowerCase();
+        // Prevent Save (Ctrl+S), View Source (Ctrl+U), Print (Ctrl+P)
+        if (key === 's' || key === 'u' || key === 'p') {
+          e.preventDefault();
+        }
+        // Prevent Copy (Ctrl+C) if not in an input
+        if (key === 'c' && !isInput) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('copy', handleCopyCut);
+    document.addEventListener('cut', handleCopyCut);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('copy', handleCopyCut);
+      document.removeEventListener('cut', handleCopyCut);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   // State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('todos');

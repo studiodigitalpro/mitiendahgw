@@ -47,32 +47,32 @@ export const COMPANY_INFO = {
   certifications: [
     {
       name: 'Certificación FDA',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/FDA-1024x683-1.webp',
+      image: 'https://lh3.googleusercontent.com/d/1Y-558vlkBvhzP8Q9EVeXUtdlxI7I2lor',
       desc: 'Aprobación de la Administración de Alimentos y Medicamentos de EE.UU.'
     },
     {
       name: 'Certificación ISO 9001',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/Iso_9001-1024x683-1.webp',
+      image: 'https://lh3.googleusercontent.com/d/1P6ofoRj1qRSl5_4DnIMipaa44OzC8Nba',
       desc: 'Estándar internacional de gestión de calidad en producción.'
     },
     {
       name: 'Buenas Prácticas (GMP)',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/Good_Manufacturing_Practice-1024x683-1.webp',
+      image: 'https://lh3.googleusercontent.com/d/1Da2Y3oO8DbsgyNcvrufuQcHjZZkvAF6g',
       desc: 'Good Manufacturing Practice que garantiza pureza y consistencia.'
     },
     {
       name: 'HACCP',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/HACCP-1024x683-1.webp',
+      image: 'https://lh3.googleusercontent.com/d/19rx-TaTo4rXEhq7zTQAs0P4DzjJKx90m',
       desc: 'Análisis de Peligros y Puntos Críticos de Control en alimentos.'
     },
     {
       name: 'Halal Certified',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/Halal_Certified-1024x683-1.webp',
+      image: 'https://lh3.googleusercontent.com/d/1WkdhJL2x4hsIKErhU9wjPx6Lg0G0O7uf',
       desc: 'Certificación internacional de inocuidad y pureza Halal.'
     },
     {
       name: 'Global G.A.P.',
-      image: 'https://hgwpanama.com/wp-content/uploads/2026/08/GlobalG_A_P.webp',
+      image: 'https://lh3.googleusercontent.com/d/1ODgx9Uq3uoJ0QeaygMJLjsWjBfRuX5gn',
       desc: 'Norma mundial para las Buenas Prácticas Agrícolas en cultivo de arándanos.'
     }
   ],
