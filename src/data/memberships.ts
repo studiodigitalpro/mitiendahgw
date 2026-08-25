@@ -43,7 +43,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     ],
     recommendedFor: 'Ideal para personas que desean probar los productos y generar sus primeros ingresos extra con mínima inversión.',
     popular: false,
-    image: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-plata-hgw.webp'
+    image: 'https://lh3.googleusercontent.com/d/1zEE-qDnp7a1_ajNkgLf_0tJGxgDtu-0B'
   },
   {
     id: 'junior',
@@ -73,7 +73,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     ],
     recommendedFor: 'Recomendada para quienes buscan construir una red activa y comercializar productos con mayor margen.',
     popular: true,
-    image: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-oro-hgw.webp'
+    image: 'https://lh3.googleusercontent.com/d/1VrZEVcf0SVdEc6exduWCZkTLd3D5CaBI'
   },
   {
     id: 'senior',
@@ -104,7 +104,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     ],
     recommendedFor: 'Para constructores de equipos y líderes que buscan ingresos significativos de mediano y largo plazo.',
     popular: false,
-    image: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-platino-hgw.webp'
+    image: 'https://lh3.googleusercontent.com/d/1q1Xzu3fdDd4NwtxUkKPHEtjCfqCpE7Kh'
   },
   {
     id: 'master',
@@ -136,7 +136,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     ],
     recommendedFor: 'Diseñada para emprendedores y visionarios que desean el máximo rendimiento, 60% en recompras y construir libertad financiera.',
     popular: true,
-    image: 'https://hgwpanama.com/wp-content/uploads/2026/08/Rango-Diamante-300x300-1.webp'
+    image: 'https://lh3.googleusercontent.com/d/128jdtduQepsIrMhhbmFSB6fA24P34IYT'
   }
 ];
 
@@ -144,31 +144,31 @@ export const HGW_RANKS = [
   {
     name: 'Rango Plata',
     accumulated: 'USD $500 Acumulados',
-    badgeImage: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-plata-hgw.webp',
+    badgeImage: 'https://lh3.googleusercontent.com/d/1zEE-qDnp7a1_ajNkgLf_0tJGxgDtu-0B',
     description: 'Primer gran escalón de liderazgo. Logrado con 8 paquetes Master y 2 Junior, o 16 Senior y 2 Junior.'
   },
   {
     name: 'Rango Oro',
     accumulated: 'USD $1,500 Acumulados',
-    badgeImage: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-oro-hgw.webp',
+    badgeImage: 'https://lh3.googleusercontent.com/d/1VrZEVcf0SVdEc6exduWCZkTLd3D5CaBI',
     description: 'Consolidación de equipo activo y duplicación en profundidad.'
   },
   {
     name: 'Rango Platino',
     accumulated: 'USD $3,000 Acumulados',
-    badgeImage: 'https://hgwpanama.com/wp-content/uploads/2026/08/rango-platino-hgw.webp',
+    badgeImage: 'https://lh3.googleusercontent.com/d/1q1Xzu3fdDd4NwtxUkKPHEtjCfqCpE7Kh',
     description: 'Liderazgo intermedio con acceso a bonos de calificación y eventos exclusivos.'
   },
   {
     name: 'Rango Diamante',
     accumulated: 'USD $5,000 Acumulados',
-    badgeImage: 'https://hgwpanama.com/wp-content/uploads/2026/08/Rango-Diamante-300x300-1.webp',
+    badgeImage: 'https://lh3.googleusercontent.com/d/128jdtduQepsIrMhhbmFSB6fA24P34IYT',
     description: 'Rango insignia de HGW. Abre las puertas al Club de Diamantes y viajes internacionales.'
   },
   {
     name: 'Diamantes 1 a 7 Estrellas',
     accumulated: 'Desde 1 hasta 7 Diamantes Directos',
-    badgeImage: 'https://hgwpanama.com/wp-content/uploads/2026/08/Rango-Diamante-300x300-1.webp',
+    badgeImage: 'https://lh3.googleusercontent.com/d/128jdtduQepsIrMhhbmFSB6fA24P34IYT',
     description: 'Máximas categorías de honor en HGW con incentivos de Bono Auto, Bono Casa y Club Millonario.'
   }
 ];

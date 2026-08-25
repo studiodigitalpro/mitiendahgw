@@ -279,6 +279,7 @@ export const MembershipSection: React.FC<MembershipSectionProps> = ({ onSelectPl
                       src={rank.badgeImage}
                       alt={rank.name}
                       referrerPolicy="no-referrer"
+                      loading="lazy"
                       className="max-h-full max-w-full object-contain"
                     />
                   </div>

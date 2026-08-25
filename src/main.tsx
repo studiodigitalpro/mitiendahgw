@@ -3,12 +3,23 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-  window.history.replaceState(null, '', '/');
+// Redirección e inicialización segura para todas las URLs antiguas
+try {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+    const search = window.location.search || '';
+    const hash = window.location.hash || '';
+    window.history.replaceState(null, '', `/${search}${hash}`);
+  }
+} catch (e) {
+  // Manejo a prueba de errores para navegadores móviles con restricciones de sandbox
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
+
