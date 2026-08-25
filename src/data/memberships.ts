@@ -5,7 +5,7 @@ export const SPONSOR_INFO: SponsorInfo = {
   role: 'Networker Digital & Distribuidora Independiente HGW',
   code: 'Yamilka507',
   country: 'Panamá',
-  email: 'info@negociohgw.com',
+  email: 'info.yamilka@gmail.com',
   phone: '+507 6778-8375',
   whatsapp: '+50767788375',
   image: 'https://lh3.googleusercontent.com/d/1KeOPcyuhctKp1qJsNsfw-nlUuXzyU_hf',

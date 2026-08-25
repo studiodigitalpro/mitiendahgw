@@ -109,7 +109,7 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
   // Extract previous conversational context (last user queries & yamilka answers)
   const previousUserMessages = history.filter(h => h.sender === 'user').map(h => h.text).join(" ");
 
-  // 1. Existing partner check (RULE 17)
+  // 1. Existing partner check
   if (
     text.includes("ya soy socio") || 
     text.includes("ya soy socia") || 
@@ -121,11 +121,11 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("ya me afilie")
   ) {
     return {
-      reply: "¡Hola! Si ya eres socio de HGW, lo recomendable es que contactes directamente a tu patrocinador para recibir orientación sobre tu cuenta, pedidos y seguimiento. ¡Te deseo el mayor de los éxitos en tu negocio! 🙌"
+      reply: "Si ya eres socio de HGW, lo mejor es que contactes directamente a tu asesor o patrocinador para recibir orientación sobre tu cuenta y pedidos. ¡Te deseo mucho éxito! 😊"
     };
   }
 
-  // 2. Direct talk with Yamilka / WhatsApp request (RULE 15 & 32)
+  // 2. Direct talk with Yamilka / WhatsApp / Email request
   if (
     text.includes("hablar con yamilka") || 
     text.includes("hablar contigo") || 
@@ -133,17 +133,19 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("whatsapp") || 
     text.includes("numero") || 
     text.includes("telefono") || 
+    text.includes("correo") ||
+    text.includes("email") ||
     text.includes("contacto directo")
   ) {
     return {
-      reply: "¡Claro que sí! 😊 Puedes escribirme directamente a mi WhatsApp (+507 6778-8375). Con mucho gusto te atenderé y responderé todas tus dudas de forma personalizada.",
+      reply: "¡Claro que sí! 😊 Puedes escribirme directamente a mi correo info.yamilka@gmail.com o a mi WhatsApp (+507 6778-8375) y con gusto te atiendo de forma personalizada.",
       suggestedAction: 'whatsapp',
-      actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent('Hola Yamilka, te escribo desde la tienda web hgwpanama.com. Me gustaría recibir asesoría personalizada.')}`,
-      actionLabel: "💬 Chatear con Yamilka por WhatsApp"
+      actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent('Hola Yamilka, te escribo desde la tienda web. Me gustaría recibir asesoría personalizada.')}`,
+      actionLabel: "💬 Escribirme por WhatsApp"
     };
   }
 
-  // 3. Ambiguous / Too general questions -> Clarification follow-up (RULE 4, 9, 10)
+  // 3. Ambiguous / Too general questions -> Short clarification question
   if (
     text === "quiero algo bueno" || 
     text === "que me recomiendas" || 
@@ -154,13 +156,13 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text === "recomiendame algo"
   ) {
     return {
-      reply: "¡Claro con mucho gusto! 😊 Para orientarte como te mereces, cuéntame un poquito más: ¿estás buscando mejorar tu digestión y colon, tener más energía, cuidar tu piel y articulaciones, o te interesa conocer nuestros cafés funcionales y cuidado personal?",
+      reply: "¡Claro con gusto! 😊 ¿Qué estás buscando mejorar exactamente? ¿Tu digestión, más energía, la piel, o conocer nuestros cafés?",
       suggestedAction: 'catalog',
       actionLabel: "🛍️ Ver catálogo"
     };
   }
 
-  // 4. Wants to join as partner / distributor / business (RULE 16 & 18)
+  // 4. Wants to join as partner / distributor / business
   if (
     text.includes("quiero ser socio") || 
     text.includes("quiero ser socia") || 
@@ -170,20 +172,14 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("quiero vender") || 
     text.includes("membresia") || 
     text.includes("plan de compensacion") || 
-    text.includes("ganancia mutua") ||
     text.includes("cuanto cuesta afiliarse") ||
     text.includes("ganar dinero")
   ) {
     return {
-      reply: "¡Qué excelente decisión! 🌟 En HGW puedes iniciar con 4 niveles de membresía oficiales según tu proyección:\n\n" +
-        "• **Prejunior (50 BV / ~$89–$100)**: 30% de descuento permanente en recompras.\n" +
-        "• **Junior (100 BV / ~$180–$200)**: 30% de descuento y mayores bonos de equipo.\n" +
-        "• **Senior (300 BV / ~$540–$600)**: 30% de descuento y desbloqueas el Bono Élite.\n" +
-        "• **Master (600 BV / ~$980–$1,100)**: 👑 ¡La máxima membresía! Obtienes **60% DE DESCUENTO** en todas tus recompras de por vida y 100% de los bonos.\n\n" +
-        "Además, nuestro Plan de Ganancia Mutua 50/50 te permite ganar desde el primer momento. Si deseas registrarte bajo mi patrocinio y contar con mi asesoría directa, puedes hacerlo aquí:",
+      reply: "¡Excelente decisión! 😊 Puedes comenzar desde 50 BV (~B/. 90.00) con 30% de descuento permanente, o con membresía Master para un 60% de descuento en recompras. Si quieres comenzar conmigo, puedes registrarte aquí:",
       suggestedAction: 'register',
       actionUrl: SPONSOR_INFO.registrationUrl,
-      actionLabel: "🤝 Quiero registrarme con Yamilka"
+      actionLabel: "🤝 Registrarme con Yamilka"
     };
   }
 
@@ -199,11 +195,11 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text === "saludos"
   ) {
     return {
-      reply: "¡Hola! 😊 Qué gusto saludarte. Soy Yamilka Batista, distribuidora de HGW en Panamá. Cuéntame, ¿qué estás buscando o en qué te puedo orientar hoy? Puedo recomendarte productos según lo que necesites o explicarte cómo comprar con descuento."
+      reply: "¡Hola! 😊 Soy Yamilka Batista. Cuéntame, ¿qué estás buscando o en qué te puedo orientar hoy?"
     };
   }
 
-  // 6. Questions about what products exist / catalog (RULE 11)
+  // 6. Questions about what products exist / catalog
   if (
     text.includes("que productos tienen") || 
     text.includes("que vendes") || 
@@ -212,19 +208,14 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("mostrar productos") || 
     text.includes("ver productos")
   ) {
-    const featured = PRODUCTS.filter(p => p.featured).slice(0, 4);
+    const featured = PRODUCTS.filter(p => p.featured).slice(0, 3);
     return {
-      reply: "Manejo la línea oficial completa de bienestar, nutrición y cuidado personal de HGW en Panamá:\n\n" +
-        "🫐 **Línea de Arándanos**: Caramelos antioxidantes, Péptidos de Colágeno, Mermelada Frutal y Proteína Berry Meal.\n" +
-        "☕ **Cafés Funcionales**: Berry Gano Coffee (con Ganoderma y Arándanos), Café con Cordyceps y Café con Ginseng.\n" +
-        "🌿 **Salud Digestiva y Colon**: Fresh Drink Chang JingJing (limpiador de colon) y Pro Shaping Tea (té moldeador).\n" +
-        "⚡ **Línea Turmalina y Cuidado Personal**: Toallas sanitarias con turmalina y aniones, pasta dental herbal con arándanos, jabón de oliva y termo alcalino.\n\n" +
-        "¿Hay algún área de tu bienestar que te gustaría mejorar en particular?",
+      reply: "Manejo productos oficiales HGW: cafés funcionales, arándanos, limpiadores de colon, colágeno y línea de turmalina. ¿Buscas algo en específico para tu bienestar? 😊",
       suggestedProducts: featured
     };
   }
 
-  // 7. Digestion / Belly / Stomach / Colon / Transit intestinal queries (Semantic understanding)
+  // 7. Digestion / Belly / Colon
   if (
     text.includes("digestion") || 
     text.includes("digestivo") || 
@@ -236,52 +227,39 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("estreñimiento") || 
     text.includes("estrenimiento") || 
     text.includes("ir al bano") || 
-    text.includes("transito intestinal") || 
     text.includes("inflamacion") || 
     text.includes("hinchada") ||
     text.includes("hinchado") ||
     text.includes("gases") ||
-    text.includes("desintoxicar") ||
     text.includes("limpieza")
   ) {
     const colonProducts = PRODUCTS.filter(p => 
       p.name.includes("Chang JingJing") || 
-      p.name.includes("Pro Shaping Tea") || 
-      p.name.includes("Berry Gano")
+      p.name.includes("Pro Shaping Tea")
     );
     return {
-      reply: "Para el bienestar digestivo, estómago y colon tengo opciones maravillosas con resultados comprobados:\n\n" +
-        "1. **Fresh Drink Chang JingJing**: Es nuestro limpiador botánico a base de cebada verde tierna, bayas de goji y diente de león. Regula el tránsito intestinal suavemente sin cólicos y ayuda a limpiar colon e hígado (**B/. 13.00** público / **B/. 9.00** socio).\n\n" +
-        "2. **Pro Shaping Tea**: Té funcional termogénico que estimula la digestión ligera, reduce la retención de líquidos y apoya la reducción de medidas (**B/. 23.00** público / **B/. 16.00** socio).\n\n" +
-        "3. **Berry Gano Coffee**: Café con Ganoderma y arándanos, excelente para activar tu digestión sin irritar la mucosa gástrica (**B/. 22.00** público / **B/. 15.00** socio).\n\n" +
-        "¿Sientes principalmente pesadez/estreñimiento o te gustaría una desintoxicación completa?",
+      reply: "Para la digestión y colon te recomiendo **Fresh Drink Chang JingJing** (B/. 13.00 público / B/. 9.00 socio) y el **Pro Shaping Tea** (B/. 23.00 público / B/. 16.00 socio). ¿Sientes pesadez o buscas una limpieza suave? 😊",
       suggestedProducts: colonProducts
     };
   }
 
-  // 8. Coffee & Ganoderma / Cordyceps / Ginseng queries
+  // 8. Coffee & Ganoderma / Cordyceps
   if (
     text.includes("cafe") || 
     text.includes("café") || 
     text.includes("ganoderma") || 
     text.includes("ganoderna") || 
     text.includes("cordyceps") || 
-    text.includes("ginseng") || 
     text.includes("berry gano")
   ) {
-    const coffeeProducts = PRODUCTS.filter(p => p.category === 'serie-cafes');
+    const coffeeProducts = PRODUCTS.filter(p => p.category === 'serie-cafes').slice(0, 3);
     return {
-      reply: "Nuestros cafés funcionales son deliciosos y aportan grandes beneficios para la salud con precios oficiales:\n\n" +
-        "• **Ganoderma Soluble Coffee (B/. 23.00 público / B/. 16.00 socio)**: Café con Ganoderma Lucidum, fortalece defensas, digestión y antioxidantes (12 sobres).\n" +
-        "• **Cordyceps Coffee Cream (B/. 23.00 público / B/. 16.00 socio)**: Con hongo Cordyceps Sinensis y crema vegetal suave, excelente para vitalidad física, respiración y rendimiento (12 sobres).\n" +
-        "• **Coffee Ceps sin azúcar (B/. 20.00 público / B/. 14.00 socio)**: Café negro puro con Cordyceps sin azúcar (12 sobres).\n" +
-        "• **Café de Ashwagandha (B/. 23.00 público / B/. 16.00 socio)**: Para equilibrar el estrés y la vitalidad diaria (12 sobres).\n\n" +
-        "¿Cuál de estas opciones te gustaría probar?",
+      reply: "Nuestros cafés funcionales más pedidos son el **Ganoderma Soluble Coffee** (B/. 23.00) y el **Cordyceps Coffee Cream** (B/. 23.00). ¿Buscas defensas y digestión o energía y vitalidad? ☕",
       suggestedProducts: coffeeProducts
     };
   }
 
-  // 9. Vision / Eyes / Lutein queries
+  // 9. Vision / Eyes / Lutein
   if (
     text.includes("ojos") || 
     text.includes("ojo") || 
@@ -294,71 +272,47 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
   ) {
     const eyeProducts = PRODUCTS.filter(p => 
       p.name.includes("Candy") || 
-      p.name.includes("Luteína") || 
-      p.name.includes("Máscara") ||
-      p.name.includes("Colágeno")
-    ).slice(0, 3);
+      p.name.includes("Luteína")
+    ).slice(0, 2);
     return {
-      reply: "Para el cuidado visual y fatiga ocular, el arándano canadiense de HGW es insuperable por sus antocianinas:\n\n" +
-        "• **Blueberry Candy (B/. 5.80 / B/. 4.00 socio)**: Caramelos masticables ricos en antocianinas que alivian el ardor y vista cansada por pantallas.\n" +
-        "• **Arándanos con Luteína**: Nutrición específica para la retina y mácula.\n" +
-        "• **Máscara de Ojos de Turmalina (B/. 32.00 / B/. 22.00 socio)**: Emite aniones e infrarrojo lejano para relajar la tensión ocular y ojeras.\n\n" +
-        "¿Sientes fatiga visual por uso frecuente de pantallas o celular?",
+      reply: "Para la vista cansada y protección de ojos por pantallas, los **Blueberry Candy** son ideales (B/. 5.80 público / B/. 4.00 socio). ¿Sientes fatiga visual frente al celular o computadora? 🫐",
       suggestedProducts: eyeProducts
     };
   }
 
-  // 10. Collagen / Skin / Joints queries
+  // 10. Collagen / Skin / Joints
   if (
     text.includes("colageno") || 
     text.includes("colágeno") || 
     text.includes("piel") || 
     text.includes("articulaciones") || 
     text.includes("rodilla") ||
-    text.includes("arrugas") || 
-    text.includes("flacidez") || 
-    text.includes("cabello") || 
-    text.includes("pelo") ||
-    text.includes("unas") ||
-    text.includes("uñas")
+    text.includes("arrugas")
   ) {
     const collagen = PRODUCTS.filter(p => p.name.includes("Colágeno") || p.name.includes("Collagen"));
     return {
-      reply: "Te recomiendo muchísimo nuestro **Blueberry Collagen Peptide (Péptido de Colágeno con Arándanos)** (**B/. 29.00** público / **B/. 20.00** socio - Caja de 12 sobres).\n\n" +
-        "Al ser micro-péptidos hidrolizados, tienen una absorción celular superior. Ayuda a devolver la firmeza y lozanía a la piel, fortalece folículos capilares, uñas y nutre cartílagos y articulaciones. Se toma 1 sobre disuelto en agua tibia o fresca diariamente.",
+      reply: "Te recomiendo el **Blueberry Collagen Peptide** (B/. 29.00 público / B/. 20.00 socio). Ayuda a la firmeza de la piel, cabello y articulaciones. ¿Quieres que te explique cómo se toma? 😊",
       suggestedProducts: collagen
     };
   }
 
-  // 11. Tourmaline / Pads / Hygiene / Personal Care
+  // 11. Tourmaline / Pads / Hygiene
   if (
     text.includes("turmalina") || 
     text.includes("toalla") || 
     text.includes("toallas") || 
     text.includes("sanitaria") || 
-    text.includes("anion") || 
-    text.includes("aniones") || 
-    text.includes("jabon") || 
-    text.includes("jabón") || 
     text.includes("pasta dental") || 
-    text.includes("termo") ||
-    text.includes("faja") ||
-    text.includes("rodillera") ||
-    text.includes("cuello")
+    text.includes("termo")
   ) {
     const tourmalineProducts = PRODUCTS.filter(p => p.category === 'cuidado-personal' || p.category === 'accesorios').slice(0, 3);
     return {
-      reply: "Nuestra tecnología de Turmalina con Emisión de Aniones es uno de los mayores beneficios de HGW con precios oficiales:\n\n" +
-        "• **Toallas Sanitarias de Turmalina**: Con cinta verde de aniones que previene bacterias, neutraliza olores y alivia cólicos menstruales (**Toalla Día B/. 5.00** / Socio: **B/. 3.50**, **Toalla Noche B/. 4.00** / Socio: **B/. 3.20**, **Protectores Diarios B/. 5.00** / Socio: **B/. 3.50**).\n" +
-        "• **Pastas Dentales de Turmalina / Probiótico (B/. 8.00 público / B/. 5.00 socio)**: Fortalece encías, previene sarro y alivia sensibilidad.\n" +
-        "• **Tourmaline Thermo WATERSON (B/. 95.00 público / B/. 65.00 socio)**: Alcaliniza y microestructura el agua (500 ml).\n" +
-        "• **Protectores Térmicos de Turmalina**: Cuello (**B/. 16.00** / Socio: **B/. 11.00**), Rodilleras (**B/. 55.00** / Socio: **B/. 39.00**), Cinturón/Faja (**B/. 69.00** / Socio: **B/. 48.00**).\n\n" +
-        "¿Cuál de estos productos te interesa conocer en detalle?",
+      reply: "Tenemos las **Toallas Sanitarias de Turmalina** (Día B/. 5.00, Noche B/. 4.00, Protectores B/. 5.00) y la **Pasta Dental con Turmalina** (B/. 8.00). ¿Cuál de ellos te interesa conocer? ✨",
       suggestedProducts: tourmalineProducts
     };
   }
 
-  // 12. Prices / How much does it cost? (RULE 1, 2, 10 & 15)
+  // 12. Prices / How much does it cost?
   if (
     text.includes("precio") || 
     text.includes("costo") || 
@@ -369,61 +323,27 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("precio publico")
   ) {
     return {
-      reply: "En HGW manejamos dos listas de precios oficiales en Panamá:\n\n" +
-        "1. **Precio al Público**: Para compras directas por unidad.\n" +
-        "2. **Precio de Socio (30% de descuento)**: Al activarte con una membresía desde 50 BV (~B/. 89–100), todos tus productos quedan con 30% de descuento inmediato, y hasta 60% en recompras con membresía Master.\n\n" +
-        "Ejemplos oficiales:\n" +
-        "• Ganoderma Soluble Coffee: **B/. 23.00** (Socio: **B/. 16.00**)\n" +
-        "• Chang JingJing Limpiador Colon: **B/. 13.00** (Socio: **B/. 9.00**)\n" +
-        "• Péptido de Colágeno: **B/. 29.00** (Socio: **B/. 20.00**)\n" +
-        "• Blueberry Candy: **B/. 5.80** (Socio: **B/. 4.00**)\n\n" +
-        "¿De cuál de nuestros productos te gustaría conocer el precio exacto?",
-      suggestedAction: 'whatsapp',
-      actionUrl: 'https://wa.me/50767788375',
-      actionLabel: "💬 Consultar precios por WhatsApp"
+      reply: "Todos los productos tienen precio público y precio con 30% de descuento como socio. ¿De qué producto en específico te gustaría saber el precio exacto? 😊"
     };
   }
 
-  // 13. Semantic / Contextual product search
+  // 13. Direct / Semantic product search
   const { directMatches } = findMatchingProducts(userQuery, previousUserMessages);
   if (directMatches.length > 0) {
     const prod = directMatches[0];
-    const otherProds = directMatches.slice(0, 3);
+    const otherProds = directMatches.slice(0, 2);
     
-    let benefitsStr = "";
-    if (prod.benefits && prod.benefits.length > 0) {
-      benefitsStr = "\n\n**Beneficios principales:**\n" + prod.benefits.map(b => `• ${b}`).join("\n");
-    }
-    
-    let ingredientsStr = "";
-    if (prod.ingredients && prod.ingredients.length > 0) {
-      ingredientsStr = `\n\n**Ingredientes:** ${prod.ingredients.join(', ')}.`;
-    }
-
-    let usageStr = "";
-    if (prod.usage) {
-      usageStr = `\n\n**Modo de uso recomendado:** ${prod.usage}`;
-    }
-
     return {
-      reply: `Sí 😊 El **${prod.name}** es un producto fantástico:\n\n` +
-        `• **Presentación:** ${prod.presentation}\n` +
-        `• **Precio al Público:** B/. ${prod.pricePublic.toFixed(2)}\n` +
-        `• **Precio de Socio (30% dcto):** B/. ${prod.pricePartner.toFixed(2)} (${prod.bv} BV)\n` +
-        `• **Descripción:** ${prod.shortDescription}` +
-        benefitsStr +
-        ingredientsStr +
-        usageStr +
-        `\n\n¿Te gustaría que te ayude a coordinar tu pedido o tienes alguna duda adicional?`,
+      reply: `Sí 😊 El precio de **${prod.name}** (${prod.presentation}) es de **B/. ${prod.pricePublic.toFixed(2)}** (Precio de socio: **B/. ${prod.pricePartner.toFixed(2)}**). ¿Quieres que te explique cómo se utiliza?`,
       suggestedProducts: otherProds
     };
   }
 
-  // 14. Unconfirmed / Not found in catalog -> Politely ask for clarification or offer WhatsApp (RULE 4 & 12)
+  // 14. Unconfirmed / Needs verification
   return {
-    reply: "Cuéntame un poquito más sobre lo que estás buscando y así puedo orientarte mejor 😊. ¿Te refieres a alguna necesidad específica de salud o buscas algún producto en particular?",
+    reply: "Ese producto no aparece entre las opciones que manejo actualmente. Si me dices qué estás buscando o necesitas asesoría personalizada, puedes escribirme a info.yamilka@gmail.com o a mi WhatsApp (+507 6778-8375) 😊.",
     suggestedAction: 'whatsapp',
     actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent(`Hola Yamilka, te consulto sobre: "${userQuery}"`)}`,
-    actionLabel: "💬 Escribir a Yamilka por WhatsApp"
+    actionLabel: "💬 Escribirme por WhatsApp"
   };
 }
