@@ -75,52 +75,62 @@ export function NewsletterModal({ isOpen: controlledIsOpen, onClose: controlledO
     setIsSubmitting(true);
 
     const fullPhone = `${countryCode} ${phone.trim()}`;
-    const subject = encodeURIComponent(`Nuevo Registro de Novedades y Actividades HGW: ${name.trim()}`);
-    const body = encodeURIComponent(
-      `Hola Yamilka / Equipo HGW Panamá,\n\n` +
-      `Se ha recibido una nueva solicitud de suscripción a Novedades, Ofertas y Actividades desde el sitio web hgwpanama.com:\n\n` +
-      `• Nombre: ${name.trim()}\n` +
-      `• Teléfono/WhatsApp: ${fullPhone}\n` +
-      `• Correo Electrónico: ${email.trim() ? email.trim() : 'No proporcionado (opcional)'}\n` +
-      `• Fecha y Hora: ${new Date().toLocaleString('es-PA')}\n` +
-      `• Canal de Origen: Pop-up Web HGW Panamá\n\n` +
-      `Por favor registrarlo en la lista de difusión y contacto prioritario.`
-    );
+    const autoResponseMessage = 
+      `¡Bienvenido a bordo!\n\n` +
+      `¡Gracias por suscribirte! Recibirás nuevas herramientas, capacitación y recursos de HGW Latinos directo en tu bandeja de entrada.\n\n` +
+      `Atentamente,\n` +
+      `Equipo HGW Panamá\n` +
+      `https://hgwpanama.com`;
 
-    // Prepare mailto target to info@hgwpanama.com with CC to info.yamilka@gmail.com
-    const mailtoUrl = `mailto:info@hgwpanama.com?cc=info.yamilka@gmail.com&subject=${subject}&body=${body}`;
-
-    // Also attempt FormSubmit / Formspree or asynchronous fallback if available, while opening mailto / whatsapp confirmation
     try {
-      // Send async beacon or fetch to standard notification service if possible
+      // 1. Envío automático por AJAX a FormSubmit con auto-respuesta al suscriptor y copia a info.yamilka@gmail.com
+      const payload: Record<string, string> = {
+        _subject: `Nuevo Suscriptor HGW Panamá: ${name.trim()}`,
+        _cc: 'info.yamilka@gmail.com',
+        _template: 'table',
+        _captcha: 'false',
+        _autoresponse: autoResponseMessage,
+        Nombre: name.trim(),
+        'Teléfono / WhatsApp': fullPhone,
+        'Correo Electrónico': email.trim() || 'No proporcionado',
+        'Fecha de Registro': new Date().toLocaleString('es-PA'),
+        'Canal de Origen': 'Pop-up Suscripción Web (hgwpanama.com)'
+      };
+
+      if (email.trim()) {
+        payload.email = email.trim();
+        payload._replyto = email.trim();
+      }
+
       await fetch('https://formsubmit.co/ajax/info@hgwpanama.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
+        body: JSON.stringify(payload)
+      }).catch(() => {
+        // Safe catch in case of client-side ad blocker
+      });
+
+      // 2. Registro local en el backend Express /api/subscribe
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-          _subject: `Nuevo Suscriptor HGW Panamá: ${name.trim()}`,
-          _cc: 'info.yamilka@gmail.com',
-          _template: 'table',
-          nombre: name.trim(),
-          telefono: fullPhone,
-          email: email.trim() || 'No proporcionado',
-          origen: 'Pop-up Suscripción Novedades HGW Panamá'
+          name: name.trim(),
+          phone: phone.trim(),
+          countryCode,
+          email: email.trim()
         })
       }).catch(() => {
-        // Safe catch for network or ad-blocker filters
+        // Safe catch
       });
     } catch {
-      // Ignored safely
+      // Safe fallback
     }
-
-    // Trigger local mail client backup link in case background mail service is blocked by client adblocker
-    const link = document.createElement('a');
-    link.href = mailtoUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.click();
 
     setIsSubmitting(false);
     setIsSuccess(true);
@@ -132,7 +142,7 @@ export function NewsletterModal({ isOpen: controlledIsOpen, onClose: controlledO
       setName('');
       setPhone('');
       setEmail('');
-    }, 4000);
+    }, 5000);
   };
 
   if (!isOpen) return null;
@@ -161,12 +171,15 @@ export function NewsletterModal({ isOpen: controlledIsOpen, onClose: controlledO
             <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border-2 border-emerald-500">
               <CheckCircle2 className="w-8 h-8 sm:w-9 sm:h-9" />
             </div>
-            <div className="space-y-1.5">
-              <h4 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                ¡Gracias por Suscribirte!
+            <div className="space-y-2">
+              <h4 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                ¡Bienvenido a bordo!
               </h4>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
-                Tus datos han sido registrados con éxito y enviados a <b>info@hgwpanama.com</b> con copia a <b>info.yamilka@gmail.com</b>. Te mantendremos al día con cada evento y promoción.
+              <p className="text-sm sm:text-base font-semibold text-emerald-700 dark:text-emerald-300 max-w-md mx-auto leading-relaxed">
+                ¡Gracias por suscribirte! Recibirás nuevas herramientas, capacitación y recursos de HGW Latinos directo en tu bandeja de entrada.
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto pt-2 border-t border-slate-200 dark:border-slate-800">
+                Hemos enviado la notificación a <b>info@hgwpanama.com</b> con copia a <b>info.yamilka@gmail.com</b>.
               </p>
             </div>
           </div>
