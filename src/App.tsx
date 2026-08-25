@@ -86,6 +86,9 @@ export default function App() {
   const [healthFocusFilter, setHealthFocusFilter] = useState<string | null>(null);
   const [isPartnerMode, setIsPartnerMode] = useState<boolean>(false);
 
+  // Business & Calculator Section tab state
+  const [businessSectionTab, setBusinessSectionTab] = useState<'plan' | 'calculadora'>('plan');
+
   // Modals state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
@@ -169,6 +172,13 @@ export default function App() {
   };
 
   const scrollToBusiness = () => {
+    setBusinessSectionTab('plan');
+    const el = document.getElementById('negocio-hgw-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToCalculator = () => {
+    setBusinessSectionTab('calculadora');
     const el = document.getElementById('negocio-hgw-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -217,6 +227,7 @@ export default function App() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenMemberships={scrollToMemberships}
         onOpenBusiness={scrollToBusiness}
+        onOpenCalculator={scrollToCalculator}
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => {
           setSelectedCategory(cat);
@@ -349,7 +360,11 @@ export default function App() {
         <VideoShortsGallery />
 
         {/* Dedicated Business Opportunity & Compensation Simulator */}
-        <BusinessSection onOpenRegisterModal={handleOpenGeneralRegistration} />
+        <BusinessSection 
+          onOpenRegisterModal={handleOpenGeneralRegistration}
+          activeTab={businessSectionTab}
+          onTabChange={setBusinessSectionTab}
+        />
 
         {/* Memberships & Compensation Plan Packages */}
         <MembershipSection onSelectPlan={handleSelectPlan} />

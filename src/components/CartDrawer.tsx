@@ -32,13 +32,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   if (!isOpen) return null;
 
   // Compute total BV and public subtotal
+  const BASE_SHIPPING_COST = 5.00;
+  const shippingCost = deliveryMethod === 'domicilio' ? BASE_SHIPPING_COST : 0;
+
   const totalBV = items.reduce((acc, item) => acc + item.product.bv * item.quantity, 0);
   const publicSubtotal = items.reduce((acc, item) => acc + item.product.pricePublic * item.quantity, 0);
   const isPartnerEligible = totalBV >= 50;
 
   // Partner subtotal if eligible
   const partnerSubtotal = items.reduce((acc, item) => acc + item.product.pricePartner * item.quantity, 0);
-  const finalTotal = isPartnerEligible ? partnerSubtotal : publicSubtotal;
+  const productsSubtotal = isPartnerEligible ? partnerSubtotal : publicSubtotal;
+  const finalTotal = productsSubtotal + shippingCost;
   const totalSavings = isPartnerEligible ? publicSubtotal - partnerSubtotal : 0;
   const bvShortage = Math.max(0, Number((50 - totalBV).toFixed(1)));
 
@@ -49,7 +53,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     message += `👤 *Cliente:* ${clientName.trim() || 'No especificado'}\n`;
     message += `📱 *Teléfono:* ${clientPhone.trim() || 'No especificado'}\n`;
     message += `📍 *Modalidad de Entrega:* ${
-      deliveryMethod === 'domicilio' ? 'A Domicilio (Servientrega Panamá)' : 'Retiro en Oficina Panamá'
+      deliveryMethod === 'domicilio' 
+        ? 'A Domicilio (Servientrega Panamá)' 
+        : 'Retiro en Oficina Panamá'
     }\n`;
 
     if (deliveryMethod === 'domicilio' && clientAddress.trim()) {
@@ -72,14 +78,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     message += `\n📊 *RESUMEN DE ORDEN:*\n`;
     message += `• *Total BV Acumulados:* ${totalBV.toFixed(1)} BV\n`;
-    message += `• *Subtotal Precio Público:* $${publicSubtotal.toFixed(2)} USD\n`;
+    message += `• *Subtotal Productos:* $${publicSubtotal.toFixed(2)} USD\n`;
 
     if (isPartnerEligible) {
       message += `• *Ahorro Descuento Socio (30%):* -$${totalSavings.toFixed(2)} USD\n`;
-      message += `• *TOTAL A PAGAR (Socio):* *$${finalTotal.toFixed(2)} USD*\n`;
+      message += `• *Subtotal con Descuento:* $${partnerSubtotal.toFixed(2)} USD\n`;
+    }
+
+    if (deliveryMethod === 'domicilio') {
+      message += `• *Costo de Envío:* $${BASE_SHIPPING_COST.toFixed(2)} USD *(estimado base, puede variar según peso y distancia)*\n`;
+    } else {
+      message += `• *Costo de Envío:* $0.00 USD (Retiro en oficina)\n`;
+    }
+
+    message += `• *TOTAL A PAGAR:* *$${finalTotal.toFixed(2)} USD*\n`;
+
+    if (isPartnerEligible) {
       message += `✨ *Calificación de Membresía:* Desbloqueado para activación como Socio HGW.\n`;
     } else {
-      message += `• *TOTAL A PAGAR:* *$${finalTotal.toFixed(2)} USD*\n`;
       message += `ℹ️ *Nota:* Con ${bvShortage} BV adicionales desbloqueas 30% de descuento socio.\n`;
     }
 
@@ -297,12 +313,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-bold text-xs">
-                    <Truck className="w-4 h-4 text-emerald-600" />
-                    <span>A Domicilio</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs">
+                      <Truck className="w-4 h-4 text-emerald-600" />
+                      <span>A Domicilio</span>
+                    </div>
+                    <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 font-mono">+$5.00</span>
                   </div>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                    Servientrega en todo Panamá (costo según peso)
+                    Servientrega en todo Panamá (puede variar por peso/distancia)
                   </span>
                 </button>
 
@@ -315,9 +334,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2 font-bold text-xs">
-                    <Building className="w-4 h-4 text-emerald-600" />
-                    <span>Retiro en Oficina</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs">
+                      <Building className="w-4 h-4 text-emerald-600" />
+                      <span>Retiro en Oficina</span>
+                    </div>
+                    <span className="text-[11px] font-black text-slate-500 font-mono">Gratis</span>
                   </div>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">
                     Oficina HGW Panamá para miembros
@@ -383,20 +405,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {/* Footer Checkout CTA */}
         {items.length > 0 && (
           <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 space-y-3">
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                <span>Subtotal ({items.length} productos):</span>
-                <span>${publicSubtotal.toFixed(2)} USD</span>
+                <span>Subtotal ({items.length} {items.length === 1 ? 'producto' : 'productos'}):</span>
+                <span className="font-mono">${publicSubtotal.toFixed(2)} USD</span>
               </div>
 
               {isPartnerEligible && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
                   <span>Descuento Socio (-30%):</span>
-                  <span>-${totalSavings.toFixed(2)} USD</span>
+                  <span className="font-mono">-${totalSavings.toFixed(2)} USD</span>
                 </div>
               )}
 
-              <div className="flex justify-between text-base sm:text-lg font-extrabold text-slate-900 dark:text-white pt-1 border-t border-slate-200 dark:border-slate-800">
+              <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                <span className="flex items-center gap-1">
+                  <span>Costo de Envío:</span>
+                  {deliveryMethod === 'domicilio' && (
+                    <span className="text-[10px] text-slate-400">(estimado)</span>
+                  )}
+                </span>
+                <span className="font-mono font-bold">
+                  {deliveryMethod === 'domicilio' ? `$${BASE_SHIPPING_COST.toFixed(2)} USD` : '$0.00 USD'}
+                </span>
+              </div>
+
+              {deliveryMethod === 'domicilio' && (
+                <div className="text-[10px] text-slate-400 italic">
+                  * Tarifa base de envío $5.00 USD (puede variar por peso o distancia).
+                </div>
+              )}
+
+              <div className="flex justify-between text-base sm:text-lg font-extrabold text-slate-900 dark:text-white pt-1.5 border-t border-slate-200 dark:border-slate-800">
                 <span>Total a Pagar:</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-mono">${finalTotal.toFixed(2)} USD</span>
               </div>
