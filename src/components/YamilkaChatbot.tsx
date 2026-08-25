@@ -176,17 +176,11 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
 
   return (
     <>
-      {/* Floating Chat Trigger Button */}
+      {/* Floating Chat Trigger Button - Left Side */}
       <div 
         id="yamilka-chat-launcher"
-        className="fixed bottom-6 right-24 sm:right-28 z-40 flex items-center gap-2 group"
+        className="fixed bottom-6 left-6 z-40 flex items-center gap-2 group"
       >
-        {/* Subtle tooltip pill on desktop hover */}
-        <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-xl border border-slate-700/60 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform translate-x-2 group-hover:translate-x-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span>Pregúntale a Yamilka</span>
-        </div>
-
         <button
           id="btn-open-yamilka-chat"
           onClick={toggleChat}
@@ -211,7 +205,7 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
 
           {/* Notification bubble if never opened */}
           {!hasOpenedBefore && (
-            <span className="absolute -top-1 -left-1 flex h-4 w-4">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-600 border border-white text-[9px] font-black text-white items-center justify-center">
                 1
@@ -219,13 +213,19 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
             </span>
           )}
         </button>
+
+        {/* Subtle tooltip pill on desktop hover to the right of the button */}
+        <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-xl border border-slate-700/60 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none transform -translate-x-2 group-hover:translate-x-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span>Pregúntale a Yamilka</span>
+        </div>
       </div>
 
-      {/* Chat Window Modal / Pop-up Drawer */}
+      {/* Chat Window Modal / Pop-up Drawer - Left Aligned */}
       {isOpen && (
         <div
           id="yamilka-chat-window"
-          className="fixed inset-x-3 bottom-3 sm:inset-auto sm:bottom-24 sm:right-6 z-50 w-auto sm:w-[420px] max-w-[calc(100vw-24px)] h-[82vh] sm:h-[580px] max-h-[700px] bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          className="fixed inset-x-3 bottom-3 sm:inset-auto sm:bottom-24 sm:left-6 z-50 w-auto sm:w-[420px] max-w-[calc(100vw-24px)] h-[82vh] sm:h-[580px] max-h-[700px] bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
           role="dialog"
           aria-labelledby="chat-yamilka-title"
         >
