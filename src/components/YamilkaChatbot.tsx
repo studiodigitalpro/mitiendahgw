@@ -29,13 +29,12 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
   const [hasOpenedBefore, setHasOpenedBefore] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showQuickPills, setShowQuickPills] = useState(true);
   
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome-1',
       sender: 'yamilka',
-      text: '¡Hola! 👋 Soy Yamilka Batista. Qué gusto tenerte por aquí 😊. Cuéntame, ¿qué estás buscando? Puedo ayudarte a conocer nuestros productos, orientarte según lo que necesitas o explicarte cómo comprar con descuento.',
+      text: '¡Hola! 👋 Soy Yamilka. Qué gusto tenerte por aquí 😊. Cuéntame, ¿en qué puedo ayudarte?',
       timestamp: new Date()
     }
   ]);
@@ -62,7 +61,6 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
     const query = (textToSend || inputMessage).trim();
     if (!query || isTyping) return;
 
-    setShowQuickPills(false);
     setInputMessage('');
 
     const userMsg: ChatMessage = {
@@ -161,10 +159,6 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
     } finally {
       setIsTyping(false);
     }
-  };
-
-  const handleQuickAction = (label: string, promptText: string) => {
-    handleSendMessage(promptText);
   };
 
   const toggleChat = () => {
@@ -409,47 +403,6 @@ export const YamilkaChatbot: React.FC<YamilkaChatbotProps> = ({
 
             <div ref={messagesEndRef} />
           </div>
-
-          {/* Quick Suggestions Pills */}
-          {showQuickPills && (
-            <div className="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-              <button
-                id="pill-quick-products"
-                onClick={() => handleQuickAction('🛍️ Ver productos', '¿Qué productos tienen disponibles?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-[13px] sm:text-[14px] font-semibold text-[#111111] dark:text-slate-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                🛍️ Ver productos
-              </button>
-              <button
-                id="pill-quick-recommendation"
-                onClick={() => handleQuickAction('💡 Recomendación', 'Necesito una recomendación para mi salud')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-[13px] sm:text-[14px] font-semibold text-[#111111] dark:text-slate-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                💡 Recomendación
-              </button>
-              <button
-                id="pill-quick-prices"
-                onClick={() => handleQuickAction('💰 Precios', '¿Cuáles son los precios y descuentos?')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-[13px] sm:text-[14px] font-semibold text-[#111111] dark:text-slate-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                💰 Conocer precios
-              </button>
-              <button
-                id="pill-quick-partner"
-                onClick={() => handleQuickAction('🤝 Ser socio', 'Quiero ser socio y conocer las membresías')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 border border-slate-300 dark:border-slate-700 hover:border-emerald-500 text-[13px] sm:text-[14px] font-semibold text-[#111111] dark:text-slate-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                🤝 Quiero ser socio
-              </button>
-              <button
-                id="pill-quick-whatsapp"
-                onClick={() => handleQuickAction('💬 WhatsApp', 'Quiero hablar con Yamilka')}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 border border-emerald-400 dark:border-emerald-700 text-[13px] sm:text-[14px] font-bold text-emerald-900 dark:text-emerald-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                💬 Hablar con Yamilka
-              </button>
-            </div>
-          )}
 
           {/* Footer Input Bar */}
           <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">

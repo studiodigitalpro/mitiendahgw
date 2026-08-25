@@ -118,10 +118,11 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("ya pertenezco a hgw") ||
     text.includes("ya estoy inscrita") ||
     text.includes("ya estoy inscrito") ||
-    text.includes("ya me afilie")
+    text.includes("ya me afilie") ||
+    (text.includes("ya soy socio") && text.includes("cuenta"))
   ) {
     return {
-      reply: "Si ya eres socio de HGW, lo mejor es que contactes directamente a tu asesor o patrocinador para recibir orientación sobre tu cuenta y pedidos. ¡Te deseo mucho éxito! 😊"
+      reply: "Perfecto 😊 Si ya eres socio, lo mejor es que contactes directamente a tu asesor o patrocinador para cualquier orientación relacionada con tu cuenta, pedidos o negocio."
     };
   }
 
@@ -138,9 +139,9 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text.includes("contacto directo")
   ) {
     return {
-      reply: "¡Claro que sí! 😊 Puedes escribirme directamente a mi correo info.yamilka@gmail.com o a mi WhatsApp (+507 6778-8375) y con gusto te atiendo de forma personalizada.",
+      reply: "¡Claro que sí! 😊 Si necesitas asesoría directamente conmigo, puedes escribirme a info.yamilka@gmail.com o a mi WhatsApp (+507 6778-8375) y con gusto te atiendo.",
       suggestedAction: 'whatsapp',
-      actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent('Hola Yamilka, te escribo desde la tienda web. Me gustaría recibir asesoría personalizada.')}`,
+      actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent('Hola Yamilka, te escribo desde la tienda web. Me gustaría recibir asesoría directa.')}`,
       actionLabel: "💬 Escribirme por WhatsApp"
     };
   }
@@ -156,27 +157,29 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
     text === "recomiendame algo"
   ) {
     return {
-      reply: "¡Claro con gusto! 😊 ¿Qué estás buscando mejorar exactamente? ¿Tu digestión, más energía, la piel, o conocer nuestros cafés?",
-      suggestedAction: 'catalog',
-      actionLabel: "🛍️ Ver catálogo"
+      reply: "Claro 😊 ¿Qué estás buscando exactamente? Cuéntame un poquito y te oriento."
     };
   }
 
-  // 4. Wants to join as partner / distributor / business
+  // 4. Wants to join as partner / distributor / business / affiliation
   if (
     text.includes("quiero ser socio") || 
     text.includes("quiero ser socia") || 
     text.includes("quiero afiliarme") || 
     text.includes("como ser socio") || 
+    text.includes("como me registro") ||
+    text.includes("como me afilio") ||
     text.includes("quiero emprender") || 
     text.includes("quiero vender") || 
     text.includes("membresia") || 
     text.includes("plan de compensacion") || 
     text.includes("cuanto cuesta afiliarse") ||
+    text.includes("cuanto tengo que comprar") ||
+    text.includes("que beneficios tengo") ||
     text.includes("ganar dinero")
   ) {
     return {
-      reply: "¡Excelente decisión! 😊 Puedes comenzar desde 50 BV (~B/. 90.00) con 30% de descuento permanente, o con membresía Master para un 60% de descuento en recompras. Si quieres comenzar conmigo, puedes registrarte aquí:",
+      reply: "Claro 😊 Si quieres ser socio, puedo explicarte cómo funciona y cómo puedes registrarte conmigo a través de mi enlace: https://www.healthgreenworld.com/?userName=Yamilka507",
       suggestedAction: 'register',
       actionUrl: SPONSOR_INFO.registrationUrl,
       actionLabel: "🤝 Registrarme con Yamilka"
@@ -341,7 +344,7 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
 
   // 14. Unconfirmed / Needs verification
   return {
-    reply: "Ese producto no aparece entre las opciones que manejo actualmente. Si me dices qué estás buscando o necesitas asesoría personalizada, puedes escribirme a info.yamilka@gmail.com o a mi WhatsApp (+507 6778-8375) 😊.",
+    reply: "Ese producto no aparece entre las opciones que manejo actualmente. Si me cuentas qué estás buscando, puedo orientarte con lo que sí tengo disponible.",
     suggestedAction: 'whatsapp',
     actionUrl: `https://wa.me/50767788375?text=${encodeURIComponent(`Hola Yamilka, te consulto sobre: "${userQuery}"`)}`,
     actionLabel: "💬 Escribirme por WhatsApp"
