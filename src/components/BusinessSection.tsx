@@ -264,7 +264,7 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
                 Academia Digital HGW 24/7
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Capacitación continua en ventas digitales, prospección automatizada y asesoría médica sin costo adicional en academiahgw.online.
+                Capacitación continua en ventas digitales, prospección automatizada y asesoría de producto y nutrición sin costo adicional en academiahgw.online.
               </p>
             </div>
           </div>

@@ -150,6 +150,9 @@ export const Footer: React.FC<FooterProps> = ({
           <p>
             <strong>Advertencia:</strong> Este sitio es operado por un afiliado independiente de HGW Health Green World Panamá. Aunque no es el sitio web corporativo central, el distribuidor cuenta con un amplio conocimiento sobre los productos, precios de socio (50+ BV) y el plan de compensación 50/50, ofreciendo asesoramiento personalizado y despacho ágil. La información aquí proporcionada refleja la experiencia del afiliado y busca brindar el mejor servicio a clientes y socios de Panamá e Iberoamérica.
           </p>
+          <p>
+            <strong>Aclaración sobre los productos:</strong> Los productos presentados son suplementos alimenticios, bebidas funcionales con antioxidantes, alimentos ricos en nutrientes para la nutrición celular, estimuladores del sistema natural de desintoxicación y artículos de confort/bienestar personal. No son medicamentos ni productos de uso o prescripción clínica, y no tienen la intención de diagnosticar, tratar, curar o prevenir enfermedades ni sustituir el consejo de un profesional médico certificado.
+          </p>
           <p className="text-slate-500 text-[10px]">
             Los ingresos, bonos e incentivos mencionados representan el potencial del Plan de Compensación de HGW y no constituyen una promesa garantizada de ganancia sin esfuerzo comercial.
           </p>

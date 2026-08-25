@@ -23,13 +23,13 @@ export const HealthProtocolsSection: React.FC<HealthProtocolsSectionProps> = ({
     <section id="protocolos-salud-section" className="my-12 space-y-6">
       <div className="text-center space-y-2 max-w-2xl mx-auto">
         <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-          Enfoques Clínicos y Nutracéuticos HGW
+          Nutrición Celular y Bienestar HGW
         </span>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-          Protocolos de Salud & Bienestar Integral
+          Líneas de Salud & Nutrición Celular
         </h2>
         <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-          Productos formulados con biotecnología I+D y nanotecnología para necesidades específicas de prevención y vitalidad.
+          Nutrientes, antioxidantes y fitocomplejos formulados con biotecnología I+D para apoyar tu vitalidad y desintoxicación natural.
         </p>
       </div>
 

@@ -39,7 +39,7 @@ export const COMPANY_INFO = {
     {
       name: 'Yamilka Batista',
       title: 'Networker Digital & Líder HGW Panamá',
-      bio: 'Distribuidora Independiente y líder oficial HGW Panamá. Especialista en asesoría del Plan de Ganancia Mutua 50/50 y recomendación clínica de fitonutrientes y bienestar integral.',
+      bio: 'Distribuidora Independiente y líder oficial HGW Panamá. Especialista en asesoría del Plan de Ganancia Mutua 50/50, nutrición celular, fitonutrientes y bienestar integral.',
       image: 'https://lh3.googleusercontent.com/d/1KeOPcyuhctKp1qJsNsfw-nlUuXzyU_hf',
       code: 'Yamilka507'
     }
