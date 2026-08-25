@@ -4,54 +4,47 @@
   html {
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 16px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
   }
   
   body {
     font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 17px;
-    color: #000000;
-    line-height: 1.65;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
+    font-size: 16px;
+    color: #0f172a;
+    line-height: 1.6;
+    overflow-x: hidden;
+    width: 100%;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   p, .prose p, .excerpt, .text-excerpt {
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.65;
   }
 
-  /* Allow text selection only in interactive form controls */
-  input, textarea, [contenteditable="true"] {
-    -webkit-user-select: text !important;
-    -moz-user-select: text !important;
-    -ms-user-select: text !important;
-    user-select: text !important;
+  /* Responsive image scaling with protection against drag */
+  img {
+    max-width: 100%;
+    height: auto;
+    -webkit-user-drag: none;
+    user-select: none;
   }
 
-  /* Disable image dragging and selection */
-  img {
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    pointer-events: auto;
+  /* Interactive elements touch styling */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
   }
 
   /* Dark mode text adjustment */
   .dark body, html.dark body {
-    color: #ffffff;
+    color: #f8fafc;
   }
 }
+
 
 
 

@@ -1,12 +1,40 @@
+# ----------------------------------------------------------------------
+# HGW PANAMA - APACHE CONFIGURATION (.htaccess)
+# ----------------------------------------------------------------------
+
+# 1. Definir archivo de inicio principal obligatorio
+DirectoryIndex index.html index.php index.htm
+
+# 2. Desactivar listado de directorios ("Index Of")
+Options -Indexes
+
+# 3. Soporte para MIME types modernos (JavaScript ES Modules, CSS, fuentes, imágenes)
+<IfModule mod_mime.c>
+  AddType application/javascript js mjs
+  AddType text/css css
+  AddType image/svg+xml svg svgz
+  AddType image/webp webp
+  AddType application/json json
+  AddType font/woff2 woff2
+  AddType font/woff woff
+</IfModule>
+
+# 4. Motor de reescritura de URLs para Single Page Application (SPA React / Vite)
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  
-  # Si el archivo o directorio solicitado existe físicamente, servirlo directamente
+
+  # Forzar que si se consulta un archivo o carpeta existente, se sirva tal cual
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
-  
-  # Redirigir todas las URLs antiguas y rutas al index.html de la SPA
+
+  # Enviar todas las peticiones restantes y rutas antiguas directamente a index.html
   RewriteRule ^ index.html [L]
 </IfModule>
+
+# 5. Compresión GZIP para carga ultrarrápida en móviles y escritorio
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
