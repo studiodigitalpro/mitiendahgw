@@ -36,7 +36,7 @@ const POPULAR_SIMULATOR_PRODUCTS = [
   { id: 1015, defaultQty: 0 }, // Ganoderma Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
   { id: 1002, defaultQty: 0 }, // Blueberry Collagen Peptides ($48 pub - $33.60 soc = $14.40 gain)
   { id: 1046, defaultQty: 0 }, // Pasta Dental Turmalina Negra ($8 pub - $5 soc = $3.00 gain)
-  { id: 1033, defaultQty: 0 }, // Toalla Sanitaria Día ($5 pub - $3.50 soc = $1.50 gain)
+  { id: 1033, defaultQty: 0 }, // Toalla Sanitaria Día ($5.50 pub - $3.85 soc = $1.65 gain)
   { id: 1040, defaultQty: 0 }, // Termo Waterson ($95 pub - $65 soc = $30.00 gain)
 ];
 

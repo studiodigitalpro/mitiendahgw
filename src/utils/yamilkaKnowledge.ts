@@ -310,7 +310,7 @@ export function generateYamilkaResponse(userQuery: string, history: ChatMessage[
   ) {
     const tourmalineProducts = PRODUCTS.filter(p => p.category === 'cuidado-personal' || p.category === 'accesorios').slice(0, 3);
     return {
-      reply: "Tenemos las **Toallas Sanitarias de Turmalina** (Día B/. 5.00, Noche B/. 4.00, Protectores B/. 5.00) y la **Pasta Dental con Turmalina** (B/. 8.00). ¿Cuál de ellos te interesa conocer? ✨",
+      reply: "Tenemos las **Toallas Sanitarias de Turmalina** (Día B/. 5.50, Noche B/. 4.40, Protectores B/. 5.50) y la **Pasta Dental con Turmalina** (B/. 8.00). ¿Cuál de ellos te interesa conocer? ✨",
       suggestedProducts: tourmalineProducts
     };
   }
