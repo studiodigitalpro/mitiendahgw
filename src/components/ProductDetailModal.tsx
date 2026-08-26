@@ -23,6 +23,7 @@ interface ProductDetailModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
+  onQuickQuote?: (product: Product, quantity: number) => void;
   onAddToCart?: (product: Product, quantity: number) => void;
   cartBV: number;
 }
@@ -34,6 +35,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   product,
   isOpen,
   onClose,
+  onQuickQuote,
   onAddToCart,
   cartBV
 }) => {
@@ -48,13 +50,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const currentPrice = isPartnerTier ? product.pricePartner : product.pricePublic;
   const savings = Number((product.pricePublic - product.pricePartner).toFixed(2));
 
-  const handleWhatsAppQuote = () => {
-    const phone = SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '');
-    const totalPublic = (product.pricePublic * quantity).toFixed(2);
-    const totalPartner = (product.pricePartner * quantity).toFixed(2);
-    const totalBV = (product.bv * quantity).toFixed(2);
+  const handleQuoteClick = () => {
+    if (onQuickQuote) {
+      onQuickQuote(product, quantity);
+    } else {
+      const phone = SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '');
+      const totalPublic = (product.pricePublic * quantity).toFixed(2);
+      const totalPartner = (product.pricePartner * quantity).toFixed(2);
+      const totalBV = (product.bv * quantity).toFixed(2);
 
-    const message = `¡Hola ${SPONSOR_INFO.name}! 👋 Deseo cotizar el siguiente producto de HGW Panamá:
+      const message = `¡Hola ${SPONSOR_INFO.name}! 👋 Deseo cotizar el siguiente producto de HGW Panamá:
 
 📦 *Producto:* ${product.name}
 🔢 *Cantidad:* ${quantity} unidad(es)
@@ -65,8 +70,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
 ¿Me podrías confirmar disponibilidad y coordinar la compra? ¡Muchas gracias!`;
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
     onClose();
   };
 
@@ -430,7 +436,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <button
                 id="btn-modal-quote-whatsapp"
                 type="button"
-                onClick={handleWhatsAppQuote}
+                onClick={handleQuoteClick}
                 className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/25 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer"
               >
                 <MessageCircle className="w-5 h-5 fill-white/20 shrink-0" />

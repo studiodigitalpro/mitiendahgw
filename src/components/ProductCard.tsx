@@ -6,6 +6,7 @@ import { SPONSOR_INFO } from '../data/memberships';
 interface ProductCardProps {
   product: Product;
   onViewDetail: (product: Product) => void;
+  onQuickQuote?: (product: Product) => void;
   onAddToCart?: (product: Product, quantity?: number) => void;
   isPartnerMode: boolean; // whether current user sees partner prices directly or has 50 BV
 }
@@ -13,26 +14,19 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onViewDetail,
+  onQuickQuote,
   onAddToCart,
   isPartnerMode
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  const handleWhatsAppQuote = (e: React.MouseEvent) => {
+  const handleQuoteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const phone = SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '');
-    const message = `¡Hola ${SPONSOR_INFO.name}! 👋 Deseo cotizar el siguiente producto de HGW Panamá:
-
-📦 *Producto:* ${product.name}
-💵 *Precio Público:* B/. ${product.pricePublic.toFixed(2)} USD
-🏷️ *Precio Socio (-30%):* B/. ${product.pricePartner.toFixed(2)} USD (${product.bv.toFixed(2)} BV)
-
-🛵 *Modalidad de entrega:* (Por favor indique si desea Envío a domicilio o Retiro en almacén en Panamá)
-
-¿Me podrías confirmar disponibilidad y coordinar la compra? ¡Muchas gracias!`;
-
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (onQuickQuote) {
+      onQuickQuote(product);
+    } else {
+      onViewDetail(product);
+    }
   };
 
   return (
@@ -131,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             id={`btn-quote-whatsapp-${product.id}`}
             type="button"
-            onClick={handleWhatsAppQuote}
+            onClick={handleQuoteClick}
             className="w-full py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-md bg-[#25D366] hover:bg-[#20bd5a] text-white active:scale-98 shadow-green-600/20 cursor-pointer"
             aria-label={`Cotizar ${product.name} por WhatsApp`}
           >

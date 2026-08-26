@@ -4,6 +4,7 @@ import { HeroBanner } from './components/HeroBanner';
 import { BVProgressBar } from './components/BVProgressBar';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetailModal } from './components/ProductDetailModal';
+import { QuickQuoteModal } from './components/QuickQuoteModal';
 import { MembershipSection } from './components/MembershipSection';
 import { BusinessSection } from './components/BusinessSection';
 import { RegistrationModal } from './components/RegistrationModal';
@@ -93,6 +94,9 @@ export default function App() {
   // Modals state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
+  const [quickQuoteProduct, setQuickQuoteProduct] = useState<Product | null>(null);
+  const [quickQuoteQuantity, setQuickQuoteQuantity] = useState<number>(1);
+  const [isQuickQuoteOpen, setIsQuickQuoteOpen] = useState<boolean>(false);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState<boolean>(false);
   const [selectedMembershipPlan, setSelectedMembershipPlan] = useState<MembershipPlan | null>(null);
@@ -151,6 +155,13 @@ export default function App() {
   const handleViewProduct = (product: Product) => {
     setSelectedProduct(product);
     setIsProductModalOpen(true);
+  };
+
+  // Quick Quote with Delivery Choice & Contact Info
+  const handleOpenQuickQuote = (product: Product, quantity = 1) => {
+    setQuickQuoteProduct(product);
+    setQuickQuoteQuantity(quantity);
+    setIsQuickQuoteOpen(true);
   };
 
   // Select Membership Plan -> Opens Registration Modal with video tutorial as required
@@ -352,6 +363,7 @@ export default function App() {
                   key={product.id}
                   product={product}
                   onViewDetail={handleViewProduct}
+                  onQuickQuote={handleOpenQuickQuote}
                   onAddToCart={handleAddToCart}
                   isPartnerMode={isPartnerPricingActive}
                 />
@@ -411,8 +423,21 @@ export default function App() {
           setIsProductModalOpen(false);
           setSelectedProduct(null);
         }}
+        onQuickQuote={handleOpenQuickQuote}
         onAddToCart={handleAddToCart}
         cartBV={totalCartBV}
+      />
+
+      {/* Quick Quote with Delivery & Contact Details Modal */}
+      <QuickQuoteModal
+        product={quickQuoteProduct}
+        quantity={quickQuoteQuantity}
+        isOpen={isQuickQuoteOpen}
+        onClose={() => {
+          setIsQuickQuoteOpen(false);
+          setQuickQuoteProduct(null);
+          setQuickQuoteQuantity(1);
+        }}
       />
 
       {/* Registration Pop-up Modal with Video Tutorial */}
