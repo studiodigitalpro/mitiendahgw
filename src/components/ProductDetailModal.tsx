@@ -5,6 +5,7 @@ import {
   CheckCircle, 
   Sparkles, 
   AlertCircle, 
+  AlertTriangle,
   Package, 
   Info, 
   HeartPulse, 
@@ -67,6 +68,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 🏷️ *Precio Socio (-30%):* B/. ${totalPartner} USD (${totalBV} BV)
 
 🛵 *Modalidad de entrega:* (Por favor indique si desea Envío a domicilio o Retiro en almacén en Panamá)
+
+⚠️ *Nota:* Para comprar con descuento de socio (-30%), se requiere comprar 50 BV en productos.
+📦 *Stock:* Por favor confirmar stock disponible antes de comprar.
 
 ¿Me podrías confirmar disponibilidad y coordinar la compra? ¡Muchas gracias!`;
 
@@ -319,10 +323,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-700 dark:text-slate-300 pt-1 gap-1">
                       <span className="font-medium text-center sm:text-left">
-                        {isPartnerTier ? '✅ Tu orden califica con 50+ BV (Precio Socio aplicado)' : '💡 Acumula 50 BV en tu carrito para activar el Precio Socio'}
+                        {isPartnerTier ? '✅ Tu orden califica con 50+ BV (Precio Socio aplicado)' : '💡 Acumula 50 BV en productos para activar el Precio Socio (-30%)'}
                       </span>
                       <span className="font-black text-emerald-600 dark:text-emerald-400 text-center sm:text-right">{product.bv} BV</span>
                     </div>
+                  </div>
+
+                  {/* Advertencia de stock */}
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs font-bold">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>⚠️ Verificar stock disponible con la asesora antes de realizar tu compra.</span>
                   </div>
                 </div>
               )}

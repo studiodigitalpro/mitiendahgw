@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MessageCircle, MapPin, Building2, User, Phone, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { X, MessageCircle, MapPin, Building2, User, Phone, CheckCircle2, AlertCircle, AlertTriangle, Sparkles } from 'lucide-react';
 import { Product } from '../types';
 import { SPONSOR_INFO } from '../data/memberships';
 
@@ -67,7 +67,10 @@ export const QuickQuoteModal: React.FC<QuickQuoteModalProps> = ({
 💵 *Precio Público:* B/. ${totalPublic} USD (${quantity > 1 ? `B/. ${product.pricePublic.toFixed(2)} c/u` : 'precio regular'})
 🏷️ *Precio Socio (-30%):* B/. ${totalPartner} USD (${totalBV} BV)
 
-¿Me podrías confirmar disponibilidad y coordinar la entrega? ¡Muchas gracias!`;
+⚠️ *Nota:* Para comprar con descuento de socio (-30%), se requiere comprar 50 BV en productos.
+📦 *Stock:* Por favor confirmar stock disponible antes de comprar.
+
+¿Me podrías confirmar disponibilidad de stock y coordinar la entrega? ¡Muchas gracias!`;
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -138,6 +141,18 @@ export const QuickQuoteModal: React.FC<QuickQuoteModalProps> = ({
                   <Sparkles className="w-3 h-3" /> Socio: B/. {totalPartner}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Avisos de Stock y Requisito de 50 BV para descuento */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 text-xs font-bold">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>Verificar stock disponible antes de comprar.</span>
+            </div>
+            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50 text-[11px] text-emerald-900 dark:text-emerald-300 font-semibold leading-snug">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <span>Para comprar con descuento de socio (-30%), se requiere comprar <strong>50 BV en productos</strong>.</span>
             </div>
           </div>
 

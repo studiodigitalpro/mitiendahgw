@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, MessageCircle, Sparkles } from 'lucide-react';
+import { Eye, MessageCircle, Sparkles, AlertTriangle } from 'lucide-react';
 import { Product } from '../types';
 import { SPONSOR_INFO } from '../data/memberships';
 
@@ -120,6 +120,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Stock availability warning */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-[10.5px] font-bold leading-tight">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>Verificar stock disponible antes de comprar</span>
           </div>
 
           <button
