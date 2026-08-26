@@ -31,13 +31,13 @@ interface BusinessSectionProps {
 
 // Representative popular products for quick selection
 const POPULAR_SIMULATOR_PRODUCTS = [
-  { id: 1001, defaultQty: 5 }, // Berry Juice Smilax ($42 pub - $29.40 soc = $12.60 gain)
-  { id: 1013, defaultQty: 8 }, // Blueberry Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
-  { id: 1015, defaultQty: 6 }, // Ganoderma Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
-  { id: 1002, defaultQty: 4 }, // Blueberry Collagen Peptides ($48 pub - $33.60 soc = $14.40 gain)
-  { id: 1046, defaultQty: 10 }, // Pasta Dental Turmalina Negra ($8 pub - $5 soc = $3.00 gain)
-  { id: 1033, defaultQty: 12 }, // Toalla Sanitaria Día ($5 pub - $3.50 soc = $1.50 gain)
-  { id: 1040, defaultQty: 2 }, // Termo Waterson ($95 pub - $65 soc = $30.00 gain)
+  { id: 1001, defaultQty: 0 }, // Berry Juice Smilax ($42 pub - $29.40 soc = $12.60 gain)
+  { id: 1013, defaultQty: 0 }, // Blueberry Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
+  { id: 1015, defaultQty: 0 }, // Ganoderma Soluble Coffee ($23 pub - $16 soc = $7.00 gain)
+  { id: 1002, defaultQty: 0 }, // Blueberry Collagen Peptides ($48 pub - $33.60 soc = $14.40 gain)
+  { id: 1046, defaultQty: 0 }, // Pasta Dental Turmalina Negra ($8 pub - $5 soc = $3.00 gain)
+  { id: 1033, defaultQty: 0 }, // Toalla Sanitaria Día ($5 pub - $3.50 soc = $1.50 gain)
+  { id: 1040, defaultQty: 0 }, // Termo Waterson ($95 pub - $65 soc = $30.00 gain)
 ];
 
 export const BusinessSection: React.FC<BusinessSectionProps> = ({ 
@@ -53,33 +53,27 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
     setInternalActiveTab(tab);
   };
 
-  // Simulator: Product selection & quantities for retail profit calculation
-  const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<number, number>>({
-    1001: 4, // 4 Berry Juice (gain: 4 * $12.60 = $50.40)
-    1013: 8, // 8 Café Arándanos (gain: 8 * $7.00 = $56.00)
-    1015: 6, // 6 Café Ganoderma (gain: 6 * $7.00 = $42.00)
-    1002: 3, // 3 Colágenos (gain: 3 * $14.40 = $43.20)
-    1046: 8, // 8 Pastas dentales (gain: 8 * $3.00 = $24.00)
-  });
+  // Simulator: Product selection & quantities for retail profit calculation (All initial quantities in ZERO)
+  const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<number, number>>({});
 
   // Additional single product selector
-  const [customProductId, setCustomProductId] = useState<number>(1040);
-  const [customProductQty, setCustomProductQty] = useState<number>(2);
+  const [customProductId, setCustomProductId] = useState<number>(1001);
+  const [customProductQty, setCustomProductQty] = useState<number>(1);
 
-  // Simulator: Start Bonuses across 2 levels
+  // Simulator: Start Bonuses across 2 levels (Initialized in ZERO)
   // Bonus values requested: $5 (Prejunior), $10 (Junior), $30 (Senior), $60 (Master)
   const [level1, setLevel1] = useState<{ prejunior: number; junior: number; senior: number; master: number }>({
-    prejunior: 2,
-    junior: 2,
-    senior: 1,
-    master: 1,
+    prejunior: 0,
+    junior: 0,
+    senior: 0,
+    master: 0,
   });
 
   const [level2, setLevel2] = useState<{ prejunior: number; junior: number; senior: number; master: number }>({
-    prejunior: 4,
-    junior: 2,
-    senior: 1,
-    master: 1,
+    prejunior: 0,
+    junior: 0,
+    senior: 0,
+    master: 0,
   });
 
   // Active tab inside the calculator
@@ -91,6 +85,13 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
     junior: 10.0,
     senior: 30.0,
     master: 60.0,
+  };
+
+  // Reset all calculator amounts to zero
+  const handleResetAllToZero = () => {
+    setSelectedProductQuantities({});
+    setLevel1({ prejunior: 0, junior: 0, senior: 0, master: 0 });
+    setLevel2({ prejunior: 0, junior: 0, senior: 0, master: 0 });
   };
 
   // Calculate Retail Profit from selected products based on actual discount margin (pricePublic - pricePartner)
@@ -409,23 +410,34 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
               <div className="lg:col-span-2 space-y-6">
                 {activeCalcTab === 'products' ? (
                   <div className="space-y-5">
-                    <div className="flex justify-between items-center text-xs text-slate-300">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-slate-300">
                       <span className="font-bold">Ajusta la cantidad mensual de productos que planeas distribuir:</span>
-                      <button
-                        onClick={() =>
-                          setSelectedProductQuantities({
-                            1001: 5,
-                            1013: 10,
-                            1015: 10,
-                            1002: 4,
-                            1046: 12,
-                            1040: 2,
-                          })
-                        }
-                        className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px]"
-                      >
-                        <RefreshCw className="w-3 h-3" /> Cargar combo sugerido
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProductQuantities({})}
+                          className="text-rose-400 hover:text-rose-300 hover:underline flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Poner productos en 0
+                        </button>
+                        <span className="text-slate-600">|</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedProductQuantities({
+                              1001: 5,
+                              1013: 10,
+                              1015: 10,
+                              1002: 4,
+                              1046: 12,
+                              1040: 2,
+                            })
+                          }
+                          className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
+                        >
+                          Cargar ejemplo
+                        </button>
+                      </div>
                     </div>
 
                     {/* List of active products in calculator */}
@@ -535,7 +547,19 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
                   /* Tab 2: Bonos de Inicio Rápido ($5 Prejunior, $10 Junior, $30 Senior, $60 Master hasta 2 niveles) */
                   <div className="space-y-6">
                     <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 text-xs text-emerald-200">
-                      <strong>Estructura oficial de Bonos de Inicio:</strong>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <strong>Estructura oficial de Bonos de Inicio:</strong>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLevel1({ prejunior: 0, junior: 0, senior: 0, master: 0 });
+                            setLevel2({ prejunior: 0, junior: 0, senior: 0, master: 0 });
+                          }}
+                          className="text-rose-400 hover:text-rose-300 hover:underline flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" /> Poner bonos en 0
+                        </button>
+                      </div>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 font-mono">
                         <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Prejunior: <strong>$5.00</strong></span>
                         <span className="bg-slate-900/60 px-2 py-1 rounded-lg">Junior: <strong>$10.00</strong></span>
@@ -820,6 +844,17 @@ export const BusinessSection: React.FC<BusinessSectionProps> = ({
                     <strong className="text-emerald-300 font-mono">${totalStartBonuses.toFixed(2)} USD</strong>
                   </div>
                 </div>
+
+                {totalEstimatedIncome > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetAllToZero}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700 hover:border-rose-500/40"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Poner todas las cantidades en cero ($0.00)</span>
+                  </button>
+                )}
 
                 <button
                   onClick={onOpenRegisterModal}
