@@ -110,7 +110,7 @@ export default function App() {
   const isPartnerPricingActive = isPartnerMode || totalCartBV >= 50;
 
   // Cart Actions
-  const handleAddToCart = (product: Product, quantity = 1) => {
+  const handleAddToCart = (product: Product, quantity = 1, openCart = true) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
@@ -122,6 +122,9 @@ export default function App() {
       }
       return [...prev, { product, quantity }];
     });
+    if (openCart) {
+      setIsCartOpen(true);
+    }
   };
 
   const handleUpdateQuantity = (productId: string | number, quantity: number) => {

@@ -186,12 +186,12 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 id="btn-open-cart"
                 onClick={onOpenCart}
-                className="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors flex items-center gap-2 border border-slate-200 dark:border-slate-700"
-                aria-label="Ver Carrito de Compras"
+                className="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white transition-colors flex items-center gap-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
+                aria-label="Ver Cotización / Carrito de Compras"
               >
                 <ShoppingBag className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-[10px] text-slate-400 leading-none font-bold">Carrito</span>
+                  <span className="text-[10px] text-slate-400 leading-none font-bold">Cotización</span>
                   <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 leading-none">
                     {cartBV.toFixed(1)} BV
                   </span>

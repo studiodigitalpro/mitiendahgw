@@ -413,10 +413,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 id="btn-modal-add-to-cart"
                 type="button"
                 onClick={handleAdd}
-                className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 min-h-[44px]"
+                className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer"
               >
                 <ShoppingBag className="w-5 h-5 shrink-0" />
-                <span className="truncate">Añadir al Carrito ({Number((quantity * product.bv).toFixed(2))} BV)</span>
+                <span className="truncate">Cotizar ({Number((quantity * product.bv).toFixed(2))} BV)</span>
               </button>
             </div>
           </div>

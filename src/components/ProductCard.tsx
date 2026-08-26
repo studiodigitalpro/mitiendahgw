@@ -123,23 +123,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             id={`btn-add-cart-${product.id}`}
             onClick={handleAdd}
-            className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-sm ${
-              addedAnimation
-                ? 'bg-teal-600 text-white'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-98 shadow-emerald-600/20'
-            }`}
+            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white active:scale-98 shadow-emerald-600/20 cursor-pointer"
           >
-            {addedAnimation ? (
-              <>
-                <Check className="w-4 h-4" />
-                <span>¡Añadido al Carrito!</span>
-              </>
-            ) : (
-              <>
-                <ShoppingBag className="w-4 h-4" />
-                <span>Añadir al Carrito</span>
-              </>
-            )}
+            <ShoppingBag className="w-4 h-4" />
+            <span>Cotizar</span>
           </button>
         </div>
       </div>
