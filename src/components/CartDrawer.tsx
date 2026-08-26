@@ -58,6 +58,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [orderNotes, setOrderNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState('');
+  const [clientWhatsAppUrl, setClientWhatsAppUrl] = useState('');
+  const [mailtoUrl, setMailtoUrl] = useState('');
+  const [emailStatus, setEmailStatus] = useState<{ dispatched: boolean; error?: string | null }>({ dispatched: false });
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; email?: string; address?: string }>({});
 
   // Additional products browser inside cart
@@ -214,9 +217,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     const whatsappUrl = `https://wa.me/${SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '')}?text=${encoded}`;
     setLastWhatsAppUrl(whatsappUrl);
 
+    // Client WhatsApp thank you confirmation link from Yamilka (+507 6778-8375)
+    const cleanPhone = clientPhone.replace(/[^0-9]/g, '');
+    const clientWa = cleanPhone
+      ? `https://wa.me/${cleanPhone.startsWith('507') ? cleanPhone : '507' + cleanPhone}?text=${encodeURIComponent(
+          `¡Hola ${clientName.trim()}! 👋 Muchas gracias por tu interés en los productos HGW. Soy Yamilka Batista (+507 6778-8375), Distribuidora Independiente en Panamá, y he recibido tu cotización por un total de B/. ${finalTotal.toFixed(2)} USD (${totalBV.toFixed(1)} BV). ¡Enseguida te atiendo con mucho gusto! 🌿`
+        )}`
+      : '';
+    setClientWhatsAppUrl(clientWa);
+
+    // Prepare direct Mailto fallback URL
+    const mailtoSubject = encodeURIComponent(`🛒 Nueva Cotización HGW Panamá - ${clientName.trim()} (B/. ${finalTotal.toFixed(2)})`);
+    const mailtoBody = encodeURIComponent(message);
+    const mailto = `mailto:info@hgwpanama.com?cc=info.yamilka@gmail.com,yamilkabatista2026@gmail.com&subject=${mailtoSubject}&body=${mailtoBody}`;
+    setMailtoUrl(mailto);
+
     // Send payload to backend server for email notification to info@hgwpanama.com with CC to info.yamilka@gmail.com and yamilkabatista2026@gmail.com
     try {
-      await fetch('/api/send-quotation', {
+      const res = await fetch('/api/send-quotation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -236,12 +254,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           totalSavings,
         }),
       });
+      const data = await res.json();
+      setEmailStatus({
+        dispatched: Boolean(data?.emailDispatched),
+        error: data?.emailError || null,
+      });
     } catch (e) {
       console.warn('Notice on quotation submission API:', e);
+      setEmailStatus({ dispatched: false, error: 'Servidor no respondió' });
     } finally {
       setIsSubmitting(false);
-      // Open WhatsApp
-      window.open(whatsappUrl, '_blank');
+      // Open WhatsApp in new tab or window
+      try {
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        console.warn('Browser prevented direct window open:', err);
+      }
       // Transition to success screen
       setCurrentStep('success');
     }
@@ -254,6 +282,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     setClientEmail('');
     setClientAddress('');
     setOrderNotes('');
+    setLastWhatsAppUrl('');
+    setClientWhatsAppUrl('');
+    setMailtoUrl('');
     setCurrentStep('products');
   };
 
@@ -262,16 +293,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   return (
     <div
       id="cart-screen-overlay"
-      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 md:p-6 transition-opacity duration-300"
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 transition-opacity duration-300 overflow-y-auto"
       onClick={onClose}
     >
       <div
         id="cart-screen-modal"
-        className="w-full h-full sm:h-auto sm:max-h-[94vh] max-w-5xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-none sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200"
+        className="w-full max-h-[95vh] max-w-5xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-y-auto border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Top Header */}
-        <div className="px-4 sm:px-6 py-4 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
+        {/* Modal Top Header (No fijo: fluye naturalmente con el scroll del formulario) */}
+        <div className="px-4 sm:px-6 py-4 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-emerald-600/15 text-emerald-600 dark:text-emerald-400">
               <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -368,7 +399,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* BV Progress Banner */}
         {items.length > 0 && (
-          <div className="px-4 sm:px-6 py-3 bg-slate-900 text-white border-b border-slate-800 shrink-0">
+          <div className="px-4 sm:px-6 py-3 bg-slate-900 text-white border-b border-slate-800">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
@@ -408,7 +439,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         )}
 
         {/* Modal Body Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="p-4 sm:p-6">
           {items.length === 0 ? (
             /* Empty State */
             <div className="py-16 sm:py-24 text-center space-y-4 max-w-md mx-auto">
@@ -1012,18 +1043,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
 
               {/* Notification Badges Summary */}
-              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-left space-y-3 text-xs sm:text-sm">
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-left space-y-3.5 text-xs sm:text-sm">
                 <h4 className="font-extrabold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 flex items-center justify-between">
-                  <span>📬 Resumen de Notificaciones Enviadas:</span>
-                  <span className="text-[11px] font-mono text-emerald-600 font-bold">Total: B/. {finalTotal.toFixed(2)}</span>
+                  <span>📬 Resumen de Notificaciones y Canales:</span>
+                  <span className="text-[11px] font-mono text-emerald-600 font-bold">Total: B/. {finalTotal.toFixed(2)} USD</span>
                 </h4>
 
-                <div className="space-y-2 text-slate-600 dark:text-slate-300">
+                <div className="space-y-2.5 text-slate-600 dark:text-slate-300">
                   <div className="flex items-start gap-2.5">
                     <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">Correo Principal:</span>{' '}
-                      <code className="text-emerald-600 dark:text-emerald-400 font-mono">info@hgwpanama.com</code>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between flex-wrap gap-1">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">Destinatario Principal (SMTP 465):</span>
+                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-bold">
+                          mail.hgwpanama.com
+                        </span>
+                      </div>
+                      <code className="text-emerald-600 dark:text-emerald-400 font-mono text-xs">info@hgwpanama.com</code>
                     </div>
                   </div>
 
@@ -1031,7 +1067,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <Mail className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold text-slate-800 dark:text-slate-200">Con Copia (CC):</span>{' '}
-                      <span className="font-mono text-[11px]">info.yamilka@gmail.com, yamilkabatista2026@gmail.com</span>
+                      <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">info.yamilka@gmail.com, yamilkabatista2026@gmail.com</span>
                     </div>
                   </div>
 
@@ -1055,22 +1091,49 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons & Fallback Links */}
               <div className="space-y-3 pt-2">
                 {lastWhatsAppUrl && (
                   <a
+                    id="btn-success-open-whatsapp-sponsor"
                     href={lastWhatsAppUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/20 flex items-center justify-center gap-2.5"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/20 flex items-center justify-center gap-2.5 cursor-pointer"
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>Abrir Chat con Yamilka en WhatsApp (+507 6778-8375)</span>
-                    <ExternalLink className="w-4 h-4" />
+                    <MessageCircle className="w-5 h-5 shrink-0" />
+                    <span>Abrir y Enviar Pedido a Yamilka (+507 6778-8375)</span>
+                    <ExternalLink className="w-4 h-4 shrink-0" />
                   </a>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {clientWhatsAppUrl && (
+                  <a
+                    id="btn-success-open-whatsapp-client"
+                    href={clientWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 px-4 rounded-xl bg-teal-50 dark:bg-teal-950/50 hover:bg-teal-100 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4 shrink-0" />
+                    <span>Enviar Mensaje de Confirmación al WhatsApp del Cliente ({clientPhone})</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  </a>
+                )}
+
+                {mailtoUrl && (
+                  <a
+                    id="btn-success-open-mailto"
+                    href={mailtoUrl}
+                    className="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Mail className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span>Enviar Copia Directa por mi Correo (info@hgwpanama.com)</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  </a>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={handleResetForNewQuotation}

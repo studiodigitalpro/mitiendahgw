@@ -10,19 +10,33 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Email Transporter (configured via SMTP or fallback logger)
+  // Email Transporter (configured for mail.hgwpanama.com:465 SSL/TLS)
   const getTransporter = () => {
-    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    const host = process.env.SMTP_HOST || "mail.hgwpanama.com";
+    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const isSecure = process.env.SMTP_SECURE === "true" || port === 465;
+    const user = process.env.SMTP_USER || "info@hgwpanama.com";
+    const pass = process.env.SMTP_PASS;
+
+    if (pass) {
       return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || "587", 10),
-        secure: process.env.SMTP_SECURE === "true",
+        host,
+        port,
+        secure: isSecure,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user,
+          pass,
         },
+        tls: {
+          rejectUnauthorized: false,
+        },
+        connectionTimeout: 10000,
       });
     }
+
+    console.warn(
+      `[SMTP Aviso]: Conectando a ${host}:${port} como ${user}. Para envío SMTP real por servidor de correo, define SMTP_PASS en el entorno.`
+    );
     return null;
   };
 
@@ -214,6 +228,8 @@ async function startServer() {
       `;
 
       const transporter = getTransporter();
+      let emailDispatched = false;
+      let emailError: string | null = null;
 
       console.log(`[HGW Cotización Recibida - Registro en Sistema]`, {
         fecha: dateStr,
@@ -229,38 +245,57 @@ async function startServer() {
       });
 
       if (transporter) {
-        // Send email to Admin and CC Yamilka
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || '"HGW Panamá" <info@hgwpanama.com>',
-          to: "info@hgwpanama.com",
-          cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
-          subject: `🛒 Nueva Cotización HGW Panamá - ${clientName} (B/. ${(finalTotal || 0).toFixed(2)})`,
-          html: adminHtml,
-        });
-
-        // Send email to customer if provided
-        if (clientEmail && clientEmail.includes("@")) {
+        try {
+          // Send email to Admin and CC Yamilka
           await transporter.sendMail({
-            from: process.env.SMTP_FROM || '"Yamilka Batista - HGW Panamá" <info@hgwpanama.com>',
-            to: clientEmail,
-            subject: `¡Hemos recibido tu cotización en HGW Panamá! — Yamilka Batista`,
-            html: customerHtml,
+            from: process.env.SMTP_FROM || '"HGW Panamá" <info@hgwpanama.com>',
+            to: "info@hgwpanama.com",
+            cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
+            subject: `🛒 Nueva Cotización HGW Panamá - ${clientName} (B/. ${(finalTotal || 0).toFixed(2)})`,
+            html: adminHtml,
           });
+          emailDispatched = true;
+
+          // Send email to customer if provided
+          if (clientEmail && clientEmail.includes("@")) {
+            await transporter.sendMail({
+              from: process.env.SMTP_FROM || '"Yamilka Batista - HGW Panamá" <info@hgwpanama.com>',
+              to: clientEmail,
+              subject: `¡Hemos recibido tu cotización en HGW Panamá! — Yamilka Batista`,
+              html: customerHtml,
+            });
+          }
+        } catch (mailErr: any) {
+          console.error("[SMTP Error al enviar correo]", mailErr);
+          emailError = mailErr?.message || "Error al conectar con servidor SMTP";
         }
       }
 
-      // WhatsApp personalized thank-you template from Yamilka (+507 6778-8375)
-      const thankYouWhatsAppMsg = `¡Hola ${clientName}! 👋 Muchas gracias por tu interés en los productos HGW Panamá. Soy Yamilka Batista (+507 6778-8375) y he recibido tu cotización con éxito por un total de B/. ${(finalTotal || 0).toFixed(2)} (${(totalBV || 0).toFixed(1)} BV). ¡Enseguida te atiendo con mucho gusto! 🌿`;
+      // WhatsApp personalized thank-you template from Yamilka (+507 6778-8375) to Client
+      const cleanPhone = (clientPhone || "").replace(/[^0-9]/g, "");
+      const clientWhatsAppUrl = cleanPhone
+        ? `https://wa.me/${cleanPhone.startsWith("507") ? cleanPhone : "507" + cleanPhone}?text=${encodeURIComponent(
+            `¡Hola ${clientName}! 👋 Muchas gracias por tu interés en los productos HGW. Soy Yamilka Batista (+507 6778-8375), Distribuidora Independiente, y he recibido tu cotización por un monto de B/. ${(finalTotal || 0).toFixed(2)} (${(totalBV || 0).toFixed(1)} BV). ¡Enseguida te atiendo con mucho gusto! 🌿`
+          )}`
+        : "";
+
+      // WhatsApp link to Sponsor Yamilka (+507 6778-8375)
+      const sponsorWhatsAppUrl = `https://wa.me/50767788375?text=${encodeURIComponent(
+        `🛒 *NUEVA COTIZACIÓN HGW PANAMÁ*\n👤 *Cliente:* ${clientName}\n📞 *WhatsApp:* ${clientPhone}\n${clientEmail ? `✉️ *Email:* ${clientEmail}\n` : ""}📍 *Entrega:* ${deliveryLabel}\n${clientAddress ? `🏠 *Dirección:* ${clientAddress}\n` : ""}${orderNotes ? `📝 *Notas:* ${orderNotes}\n` : ""}\n📦 *Productos:*\n${itemsText}\n\n📊 *Total BV:* ${(totalBV || 0).toFixed(1)} BV\n💵 *TOTAL:* B/. ${(finalTotal || 0).toFixed(2)} USD\n\n🤝 *Distribuidora:* Yamilka Batista (+507 6778-8375)`
+      )}`;
 
       res.json({
         success: true,
-        message: "¡Cotización enviada con éxito!",
+        message: "¡Cotización procesada con éxito!",
+        emailDispatched,
+        emailError,
         notifiedEmails: {
           to: "info@hgwpanama.com",
           cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
           clientEmail: clientEmail || null,
         },
-        thankYouMessage: thankYouWhatsAppMsg,
+        sponsorWhatsAppUrl,
+        clientWhatsAppUrl,
         sponsorWhatsApp: "+50767788375",
       });
     } catch (err) {
