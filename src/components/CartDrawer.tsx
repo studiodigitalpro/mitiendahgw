@@ -18,7 +18,11 @@ import {
   FileText,
   Search,
   Plus,
-  Check
+  Check,
+  Mail,
+  MessageCircle,
+  Loader2,
+  ExternalLink
 } from 'lucide-react';
 import { CartItem, Product } from '../types';
 import { SPONSOR_INFO } from '../data/memberships';
@@ -45,13 +49,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onOpenMemberships,
   onAddToCart
 }) => {
-  const [currentStep, setCurrentStep] = useState<'products' | 'checkout'>('products');
+  const [currentStep, setCurrentStep] = useState<'products' | 'checkout' | 'success'>('products');
   const [deliveryMethod, setDeliveryMethod] = useState<'domicilio' | 'oficina'>('domicilio');
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
   const [clientAddress, setClientAddress] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
-  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; address?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState('');
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; email?: string; address?: string }>({});
 
   // Additional products browser inside cart
   const [productSearch, setProductSearch] = useState('');
@@ -61,9 +68,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   // Reset to Step 1 whenever cart opens
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep('products');
+      if (currentStep === 'success') {
+        // Keep as is or reset if empty
+        if (items.length === 0) setCurrentStep('products');
+      } else {
+        setCurrentStep('products');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, items.length]);
 
   // Pricing calculations
   const BASE_SHIPPING_COST = 5.00;
@@ -112,16 +124,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     setCurrentStep('checkout');
   };
 
-  const handleCheckoutWhatsApp = () => {
+  const handleCheckoutWhatsApp = async () => {
     if (items.length === 0) return;
 
     // Basic validation for step 2
-    const errors: { name?: string; phone?: string; address?: string } = {};
+    const errors: { name?: string; phone?: string; email?: string; address?: string } = {};
     if (!clientName.trim()) {
       errors.name = 'Por favor escribe tu nombre y apellido.';
     }
     if (!clientPhone.trim()) {
-      errors.phone = 'Por favor ingresa tu número de WhatsApp.';
+      errors.phone = 'Por favor ingresa tu número de WhatsApp o teléfono.';
+    }
+    if (clientEmail.trim() && !clientEmail.includes('@')) {
+      errors.email = 'Por favor ingresa un correo electrónico válido.';
     }
     if (deliveryMethod === 'domicilio' && !clientAddress.trim()) {
       errors.address = 'Por favor ingresa tu dirección en Panamá.';
@@ -133,10 +148,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
 
     setFormErrors({});
+    setIsSubmitting(true);
 
     let message = `🛒 *COTIZACIÓN DE PEDIDO HGW PANAMÁ*\n`;
     message += `👤 *Cliente:* ${clientName.trim()}\n`;
     message += `📱 *Teléfono / WhatsApp:* ${clientPhone.trim()}\n`;
+    if (clientEmail.trim()) {
+      message += `✉️ *Correo Electrónico:* ${clientEmail.trim()}\n`;
+    }
     message += `📍 *Modalidad de Entrega:* ${
       deliveryMethod === 'domicilio'
         ? 'A Domicilio (Servientrega Panamá)'
@@ -193,7 +212,49 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const encoded = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '')}?text=${encoded}`;
-    window.open(whatsappUrl, '_blank');
+    setLastWhatsAppUrl(whatsappUrl);
+
+    // Send payload to backend server for email notification to info@hgwpanama.com with CC to info.yamilka@gmail.com and yamilkabatista2026@gmail.com
+    try {
+      await fetch('/api/send-quotation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientName: clientName.trim(),
+          clientPhone: clientPhone.trim(),
+          clientEmail: clientEmail.trim() || undefined,
+          clientAddress: deliveryMethod === 'domicilio' ? clientAddress.trim() : '',
+          deliveryMethod,
+          orderNotes: orderNotes.trim(),
+          items,
+          totalBV,
+          publicSubtotal,
+          partnerSubtotal,
+          shippingCost,
+          finalTotal,
+          isPartnerEligible,
+          totalSavings,
+        }),
+      });
+    } catch (e) {
+      console.warn('Notice on quotation submission API:', e);
+    } finally {
+      setIsSubmitting(false);
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
+      // Transition to success screen
+      setCurrentStep('success');
+    }
+  };
+
+  const handleResetForNewQuotation = () => {
+    onClearCart();
+    setClientName('');
+    setClientPhone('');
+    setClientEmail('');
+    setClientAddress('');
+    setOrderNotes('');
+    setCurrentStep('products');
   };
 
   if (!isOpen) return null;
@@ -217,10 +278,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
             <div>
               <h2 className="font-black text-lg sm:text-xl text-slate-900 dark:text-white leading-tight">
-                Cotización de Productos HGW
+                {currentStep === 'success'
+                  ? 'Cotización Confirmada'
+                  : currentStep === 'checkout'
+                  ? 'Finalizar Cotización'
+                  : 'Cotización de Productos HGW'}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {items.length === 0
+                {currentStep === 'success'
+                  ? 'Notificación enviada a Yamilka Batista (+507 6778-8375)'
+                  : items.length === 0
                   ? 'Tu carrito está vacío'
                   : `${totalItemsCount} ${totalItemsCount === 1 ? 'unidad' : 'unidades'} (${items.length} ${items.length === 1 ? 'producto' : 'productos'})`}
               </p>
@@ -660,7 +727,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
             </div>
-          ) : (
+          ) : currentStep === 'checkout' ? (
             /* STEP 2: FORMULARIO EN GRID DE 2 COLUMNAS (Optimizado para no ocupar mucho espacio y 100% responsivo) */
             <div className="max-w-3xl mx-auto space-y-5 animate-in fade-in-50 duration-200">
               {/* Back to Step 1 Button */}
@@ -727,10 +794,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* 2. Customer Contact Form en GRID DE 2 COLUMNAS */}
               <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3.5">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-600" />
-                  <span>2. Datos de Contacto y Envío</span>
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <User className="w-4 h-4 text-emerald-600" />
+                    <span>2. Datos de Contacto y Envío</span>
+                  </h3>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Notificaciones a <strong className="text-emerald-700 dark:text-emerald-400">info@hgwpanama.com</strong>
+                  </span>
+                </div>
 
                 {/* GRID 2 COLUMNAS (1 col en móvil, 2 col en tablet/desktop) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4 text-xs sm:text-sm">
@@ -776,54 +848,84 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     )}
                   </div>
 
-                  {/* Si es a domicilio: Dirección en Col 1, Notas en Col 2 */}
-                  {deliveryMethod === 'domicilio' ? (
-                    <>
-                      <div className="md:col-span-1">
-                        <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
-                          Dirección de Entrega en Panamá *
-                        </label>
-                        <input
-                          id="input-client-address"
-                          type="text"
-                          value={clientAddress}
-                          onChange={(e) => {
-                            setClientAddress(e.target.value);
-                            if (formErrors.address) setFormErrors({ ...formErrors, address: undefined });
-                          }}
-                          placeholder="Provincia, Ciudad, Barriada, Calle..."
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                        {formErrors.address && (
-                          <p className="text-rose-500 text-xs font-semibold mt-1">{formErrors.address}</p>
-                        )}
-                      </div>
+                  {/* Correo Electrónico (para confirmación digital) */}
+                  <div className={deliveryMethod === 'domicilio' ? 'md:col-span-1' : 'md:col-span-1'}>
+                    <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Correo Electrónico (Opcional)</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-normal">
+                        Para recibir comprobante
+                      </span>
+                    </label>
+                    <input
+                      id="input-client-email"
+                      type="email"
+                      value={clientEmail}
+                      onChange={(e) => {
+                        setClientEmail(e.target.value);
+                        if (formErrors.email) setFormErrors({ ...formErrors, email: undefined });
+                      }}
+                      placeholder="tunombre@ejemplo.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    {formErrors.email && (
+                      <p className="text-rose-500 text-xs font-semibold mt-1">{formErrors.email}</p>
+                    )}
+                  </div>
 
-                      <div className="md:col-span-1">
-                        <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
-                          Notas o indicaciones (opcional)
-                        </label>
-                        <input
-                          id="input-client-notes"
-                          type="text"
-                          value={orderNotes}
-                          onChange={(e) => setOrderNotes(e.target.value)}
-                          placeholder="Horario preferido, referencia..."
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-                      </div>
-                    </>
+                  {/* Notas o Indicaciones si retiro en oficina, o Dirección si domicilio */}
+                  {deliveryMethod === 'domicilio' ? (
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Dirección de Entrega en Panamá *</span>
+                      </label>
+                      <input
+                        id="input-client-address"
+                        type="text"
+                        value={clientAddress}
+                        onChange={(e) => {
+                          setClientAddress(e.target.value);
+                          if (formErrors.address) setFormErrors({ ...formErrors, address: undefined });
+                        }}
+                        placeholder="Provincia, Ciudad, Barriada, Calle o Edificio..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      {formErrors.address && (
+                        <p className="text-rose-500 text-xs font-semibold mt-1">{formErrors.address}</p>
+                      )}
+                    </div>
                   ) : (
-                    <div className="md:col-span-2">
-                      <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
-                        Notas o indicaciones adicionales (opcional)
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Notas o Indicaciones (Opcional)</span>
                       </label>
                       <input
                         id="input-client-notes"
                         type="text"
                         value={orderNotes}
                         onChange={(e) => setOrderNotes(e.target.value)}
-                        placeholder="Horario de retiro preferido o alguna observación..."
+                        placeholder="Horario preferido, persona que retira..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  )}
+
+                  {deliveryMethod === 'domicilio' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Notas o Referencia de Entrega (Opcional)</span>
+                      </label>
+                      <input
+                        id="input-client-notes-extra"
+                        type="text"
+                        value={orderNotes}
+                        onChange={(e) => setOrderNotes(e.target.value)}
+                        placeholder="Color de casa, garita, punto de referencia o contacto adicional..."
                         className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>
@@ -868,16 +970,121 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <button
                   id="btn-checkout-whatsapp"
                   type="button"
+                  disabled={isSubmitting}
                   onClick={handleCheckoutWhatsApp}
-                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-base sm:text-lg transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2.5 cursor-pointer"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed text-white font-black text-base sm:text-lg transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2.5 cursor-pointer"
                 >
-                  <Send className="w-5 h-5" />
-                  <span>Enviar Cotización por WhatsApp</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Enviando cotización y notificando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Enviar Cotización por WhatsApp & Correo</span>
+                    </>
+                  )}
                 </button>
 
                 <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 pt-1 text-center">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>Atención directa y personalizada con <strong>{SPONSOR_INFO.name}</strong> ({SPONSOR_INFO.code})</span>
+                  <span>
+                    Atención directa con <strong>{SPONSOR_INFO.name}</strong> ({SPONSOR_INFO.code}) · WhatsApp: <strong>+507 6778-8375</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* STEP 3: SUCCESS CONFIRMATION SCREEN */
+            <div className="max-w-2xl mx-auto py-4 px-2 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                <CheckCircle2 className="w-10 h-10" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  ¡Cotización Enviada con Éxito!
+                </h3>
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-lg mx-auto leading-relaxed">
+                  ¡Hola <strong>{clientName || 'Cliente'}</strong>! Muchas gracias por tu interés en los productos HGW. Soy <strong>{SPONSOR_INFO.name}</strong> (+507 6778-8375) y he recibido tu cotización.
+                </p>
+              </div>
+
+              {/* Notification Badges Summary */}
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-left space-y-3 text-xs sm:text-sm">
+                <h4 className="font-extrabold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 flex items-center justify-between">
+                  <span>📬 Resumen de Notificaciones Enviadas:</span>
+                  <span className="text-[11px] font-mono text-emerald-600 font-bold">Total: B/. {finalTotal.toFixed(2)}</span>
+                </h4>
+
+                <div className="space-y-2 text-slate-600 dark:text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">Correo Principal:</span>{' '}
+                      <code className="text-emerald-600 dark:text-emerald-400 font-mono">info@hgwpanama.com</code>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <Mail className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">Con Copia (CC):</span>{' '}
+                      <span className="font-mono text-[11px]">info.yamilka@gmail.com, yamilkabatista2026@gmail.com</span>
+                    </div>
+                  </div>
+
+                  {clientEmail && (
+                    <div className="flex items-start gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">Confirmación al Cliente por Correo:</span>{' '}
+                        <code className="text-emerald-600 dark:text-emerald-400 font-mono">{clientEmail}</code>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-2.5">
+                    <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">WhatsApp Remitente & Asesor:</span>{' '}
+                      <strong>+507 6778-8375 (Yamilka Batista)</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-2">
+                {lastWhatsAppUrl && (
+                  <a
+                    href={lastWhatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/20 flex items-center justify-center gap-2.5"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>Abrir Chat con Yamilka en WhatsApp (+507 6778-8375)</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={handleResetForNewQuotation}
+                    className="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+                  >
+                    Nueva Cotización
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+                  >
+                    Cerrar y Seguir Explorando
+                  </button>
                 </div>
               </div>
             </div>

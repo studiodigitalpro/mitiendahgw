@@ -2,12 +2,29 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import nodemailer from "nodemailer";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Email Transporter (configured via SMTP or fallback logger)
+  const getTransporter = () => {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+      return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "587", 10),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    }
+    return null;
+  };
 
   // Initialize Gemini AI if key is present
   let ai: GoogleGenAI | null = null;
@@ -31,6 +48,227 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Quotation Submission Route
+  app.post("/api/send-quotation", async (req, res) => {
+    try {
+      const {
+        clientName,
+        clientPhone,
+        clientEmail,
+        clientAddress,
+        deliveryMethod,
+        orderNotes,
+        items,
+        totalBV,
+        publicSubtotal,
+        partnerSubtotal,
+        shippingCost,
+        finalTotal,
+        isPartnerEligible,
+        totalSavings,
+      } = req.body;
+
+      const dateStr = new Date().toLocaleString("es-PA", { timeZone: "America/Panama" });
+      const deliveryLabel =
+        deliveryMethod === "domicilio"
+          ? "A Domicilio (Servientrega Panamá - B/. 5.00)"
+          : "Retiro en Oficina Panamá (Gratis)";
+
+      // Build product rows HTML & Text
+      const productRowsHtml = (items || [])
+        .map(
+          (item: any, idx: number) => `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px; text-align: center; color: #64748b; font-weight: bold;">${idx + 1}</td>
+            <td style="padding: 10px; color: #0f172a; font-weight: 600;">${item.product?.name || "Producto"}</td>
+            <td style="padding: 10px; text-align: center; color: #0f172a;">${item.quantity}</td>
+            <td style="padding: 10px; text-align: right; color: #0f172a;">B/. ${(isPartnerEligible ? item.product?.pricePartner : item.product?.pricePublic || 0).toFixed(2)}</td>
+            <td style="padding: 10px; text-align: center; color: #059669; font-weight: bold;">${((item.product?.bv || 0) * item.quantity).toFixed(1)} BV</td>
+            <td style="padding: 10px; text-align: right; color: #0f172a; font-weight: bold;">B/. ${((isPartnerEligible ? item.product?.pricePartner : item.product?.pricePublic || 0) * item.quantity).toFixed(2)}</td>
+          </tr>`
+        )
+        .join("");
+
+      const itemsText = (items || [])
+        .map(
+          (item: any, idx: number) =>
+            `${idx + 1}. ${item.product?.name || "Producto"} x ${item.quantity} und | Unitario: B/. ${(isPartnerEligible ? item.product?.pricePartner : item.product?.pricePublic || 0).toFixed(2)} | BV: ${((item.product?.bv || 0) * item.quantity).toFixed(1)} pts | Sub: B/. ${((isPartnerEligible ? item.product?.pricePartner : item.product?.pricePublic || 0) * item.quantity).toFixed(2)}`
+        )
+        .join("\n");
+
+      // Notification HTML to Admin & Yamilka
+      const adminHtml = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <div style="background: #059669; padding: 24px; color: #ffffff;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: 800;">🛒 Nueva Cotización de Productos HGW Panamá</h1>
+            <p style="margin: 6px 0 0 0; opacity: 0.9; font-size: 14px;">Fecha: ${dateStr}</p>
+          </div>
+          
+          <div style="padding: 24px;">
+            <div style="background: #f8fafc; border-radius: 12px; padding: 18px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+              <h2 style="margin: 0 0 12px 0; font-size: 16px; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">👤 Datos del Cliente</h2>
+              <table style="width: 100%; font-size: 14px; color: #334155;">
+                <tr><td style="padding: 4px 0; font-weight: bold; width: 140px;">Nombre:</td><td>${clientName}</td></tr>
+                <tr><td style="padding: 4px 0; font-weight: bold;">WhatsApp/Tel:</td><td><a href="https://wa.me/${(clientPhone || '').replace(/[^0-9]/g, '')}" style="color: #059669; font-weight: bold;">${clientPhone}</a></td></tr>
+                <tr><td style="padding: 4px 0; font-weight: bold;">Correo:</td><td>${clientEmail ? `<a href="mailto:${clientEmail}">${clientEmail}</a>` : 'No proporcionado'}</td></tr>
+                <tr><td style="padding: 4px 0; font-weight: bold;">Modalidad:</td><td>${deliveryLabel}</td></tr>
+                ${clientAddress ? `<tr><td style="padding: 4px 0; font-weight: bold;">Dirección:</td><td>${clientAddress}</td></tr>` : ''}
+                ${orderNotes ? `<tr><td style="padding: 4px 0; font-weight: bold;">Notas:</td><td>${orderNotes}</td></tr>` : ''}
+              </table>
+            </div>
+
+            <h2 style="margin: 0 0 12px 0; font-size: 16px; color: #0f172a;">📦 Detalle de la Cotización</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
+              <thead>
+                <tr style="background: #f1f5f9; color: #475569; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">
+                  <th style="padding: 8px; text-align: center;">#</th>
+                  <th style="padding: 8px; text-align: left;">Producto</th>
+                  <th style="padding: 8px; text-align: center;">Cant.</th>
+                  <th style="padding: 8px; text-align: right;">Unitario</th>
+                  <th style="padding: 8px; text-align: center;">BV</th>
+                  <th style="padding: 8px; text-align: right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productRowsHtml}
+              </tbody>
+            </table>
+
+            <div style="background: #0f172a; color: #ffffff; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+              <table style="width: 100%; font-size: 14px;">
+                <tr>
+                  <td style="padding: 4px 0; color: #94a3b8;">Total BV:</td>
+                  <td style="padding: 4px 0; text-align: right; color: #34d399; font-weight: bold;">${(totalBV || 0).toFixed(1)} BV</td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0; color: #94a3b8;">Subtotal Productos:</td>
+                  <td style="padding: 4px 0; text-align: right;">B/. ${(publicSubtotal || 0).toFixed(2)}</td>
+                </tr>
+                ${
+                  isPartnerEligible
+                    ? `<tr>
+                        <td style="padding: 4px 0; color: #34d399; font-weight: bold;">Descuento Socio (-30%):</td>
+                        <td style="padding: 4px 0; text-align: right; color: #34d399; font-weight: bold;">-B/. ${(totalSavings || 0).toFixed(2)}</td>
+                      </tr>`
+                    : ""
+                }
+                <tr>
+                  <td style="padding: 4px 0; color: #94a3b8;">Envío:</td>
+                  <td style="padding: 4px 0; text-align: right;">B/. ${(shippingCost || 0).toFixed(2)}</td>
+                </tr>
+                <tr style="border-top: 1px solid #334155;">
+                  <td style="padding: 10px 0 4px 0; font-size: 18px; font-weight: 800;">TOTAL A PAGAR:</td>
+                  <td style="padding: 10px 0 4px 0; text-align: right; font-size: 20px; font-weight: 800; color: #34d399;">B/. ${(finalTotal || 0).toFixed(2)} USD</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="font-size: 12px; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+              Distribuidora Independiente: <strong>Yamilka Batista (Código: Yamilka507)</strong><br />
+              WhatsApp Oficial: <strong>+507 6778-8375</strong> | Sitio Web: <a href="https://hgwpanamacity.com/" style="color: #059669;">hgwpanamacity.com</a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Customer Confirmation HTML (if email is provided)
+      const customerHtml = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <div style="background: #059669; padding: 24px; color: #ffffff; text-align: center;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: 800;">¡Gracias por tu Cotización, ${clientName}! 🌿</h1>
+            <p style="margin: 6px 0 0 0; opacity: 0.95; font-size: 14px;">Health Green World (HGW) Panamá</p>
+          </div>
+          
+          <div style="padding: 24px;">
+            <p style="font-size: 15px; color: #334155; line-height: 1.6;">
+              ¡Hola <strong>${clientName}</strong>! 👋<br/><br/>
+              Muchas gracias por tu interés en los productos HGW. Soy <strong>Yamilka Batista</strong>, Distribuidora Independiente autorizada en Panamá, y he recibido tu cotización con éxito.
+            </p>
+
+            <div style="background: #f8fafc; border-radius: 12px; padding: 16px; margin: 18px 0; border-left: 4px solid #059669;">
+              <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #0f172a;">📋 Resumen de tu Cotización:</h3>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #475569; line-height: 1.7;">
+                ${(items || []).map((i: any) => `<li><strong>${i.product?.name}</strong> x ${i.quantity} und — Subtotal: B/. ${((isPartnerEligible ? i.product?.pricePartner : i.product?.pricePublic || 0) * i.quantity).toFixed(2)} (${((i.product?.bv || 0) * i.quantity).toFixed(1)} BV)</li>`).join('')}
+              </ul>
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 15px; font-weight: bold; color: #0f172a;">
+                Total a Pagar: <span style="color: #059669;">B/. ${(finalTotal || 0).toFixed(2)} USD</span>
+              </div>
+            </div>
+
+            <p style="font-size: 14px; color: #334155; line-height: 1.6;">
+              En breve estaré contactándote por WhatsApp para coordinar los detalles de entrega y responder cualquier consulta que tengas.
+            </p>
+
+            <div style="text-align: center; margin: 24px 0;">
+              <a href="https://wa.me/50767788375" style="display: inline-block; background: #25D366; color: #ffffff; font-weight: bold; text-decoration: none; padding: 12px 24px; border-radius: 30px; font-size: 15px;">
+                💬 Chatear directamente con Yamilka Batista por WhatsApp (+507 6778-8375)
+              </a>
+            </div>
+
+            <div style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+              Yamilka Batista — Distribuidora Independiente HGW Panamá<br/>
+              WhatsApp: +507 6778-8375 | Email: info.yamilka@gmail.com | Web: https://hgwpanamacity.com/
+            </div>
+          </div>
+        </div>
+      `;
+
+      const transporter = getTransporter();
+
+      console.log(`[HGW Cotización Recibida - Registro en Sistema]`, {
+        fecha: dateStr,
+        cliente: clientName,
+        telefono: clientPhone,
+        email: clientEmail || "No proporcionado",
+        modalidad: deliveryLabel,
+        total: `B/. ${(finalTotal || 0).toFixed(2)}`,
+        bv: totalBV,
+        destinatarioPrincipal: "info@hgwpanama.com",
+        cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
+        notificarClienteEmail: Boolean(clientEmail),
+      });
+
+      if (transporter) {
+        // Send email to Admin and CC Yamilka
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || '"HGW Panamá" <info@hgwpanama.com>',
+          to: "info@hgwpanama.com",
+          cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
+          subject: `🛒 Nueva Cotización HGW Panamá - ${clientName} (B/. ${(finalTotal || 0).toFixed(2)})`,
+          html: adminHtml,
+        });
+
+        // Send email to customer if provided
+        if (clientEmail && clientEmail.includes("@")) {
+          await transporter.sendMail({
+            from: process.env.SMTP_FROM || '"Yamilka Batista - HGW Panamá" <info@hgwpanama.com>',
+            to: clientEmail,
+            subject: `¡Hemos recibido tu cotización en HGW Panamá! — Yamilka Batista`,
+            html: customerHtml,
+          });
+        }
+      }
+
+      // WhatsApp personalized thank-you template from Yamilka (+507 6778-8375)
+      const thankYouWhatsAppMsg = `¡Hola ${clientName}! 👋 Muchas gracias por tu interés en los productos HGW Panamá. Soy Yamilka Batista (+507 6778-8375) y he recibido tu cotización con éxito por un total de B/. ${(finalTotal || 0).toFixed(2)} (${(totalBV || 0).toFixed(1)} BV). ¡Enseguida te atiendo con mucho gusto! 🌿`;
+
+      res.json({
+        success: true,
+        message: "¡Cotización enviada con éxito!",
+        notifiedEmails: {
+          to: "info@hgwpanama.com",
+          cc: ["info.yamilka@gmail.com", "yamilkabatista2026@gmail.com"],
+          clientEmail: clientEmail || null,
+        },
+        thankYouMessage: thankYouWhatsAppMsg,
+        sponsorWhatsApp: "+50767788375",
+      });
+    } catch (err) {
+      console.error("Error al procesar y enviar cotización:", err);
+      res.status(500).json({ error: "Error al enviar la cotización" });
+    }
+  });
+
   // Newsletter Subscription Route
   app.post("/api/subscribe", async (req, res) => {
     try {
@@ -41,7 +279,7 @@ async function startServer() {
         telefono: fullPhone,
         email: email || 'No especificado',
         notificarA: 'info@hgwpanama.com',
-        conCopiaA: 'info.yamilka@gmail.com',
+        conCopiaA: ['info.yamilka@gmail.com', 'yamilkabatista2026@gmail.com'],
         fecha: new Date().toLocaleString('es-PA')
       });
       res.json({ 
