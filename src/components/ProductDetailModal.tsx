@@ -13,15 +13,17 @@ import {
   Maximize2, 
   Minimize2,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  MessageCircle
 } from 'lucide-react';
 import { Product } from '../types';
+import { SPONSOR_INFO } from '../data/memberships';
 
 interface ProductDetailModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToCart: (product: Product, quantity: number) => void;
+  onAddToCart?: (product: Product, quantity: number) => void;
   cartBV: number;
 }
 
@@ -46,9 +48,25 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const currentPrice = isPartnerTier ? product.pricePartner : product.pricePublic;
   const savings = Number((product.pricePublic - product.pricePartner).toFixed(2));
 
-  const handleAdd = () => {
-    onAddToCart(product, quantity);
-    setQuantity(1);
+  const handleWhatsAppQuote = () => {
+    const phone = SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '');
+    const totalPublic = (product.pricePublic * quantity).toFixed(2);
+    const totalPartner = (product.pricePartner * quantity).toFixed(2);
+    const totalBV = (product.bv * quantity).toFixed(2);
+
+    const message = `¡Hola ${SPONSOR_INFO.name}! 👋 Deseo cotizar el siguiente producto de HGW Panamá:
+
+📦 *Producto:* ${product.name}
+🔢 *Cantidad:* ${quantity} unidad(es)
+💵 *Precio Público:* B/. ${totalPublic} USD (${quantity > 1 ? `B/. ${product.pricePublic.toFixed(2)} c/u` : 'precio regular'})
+🏷️ *Precio Socio (-30%):* B/. ${totalPartner} USD (${totalBV} BV)
+
+🛵 *Modalidad de entrega:* (Por favor indique si desea Envío a domicilio o Retiro en almacén en Panamá)
+
+¿Me podrías confirmar disponibilidad y coordinar la compra? ¡Muchas gracias!`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
     onClose();
   };
 
@@ -410,13 +428,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
 
               <button
-                id="btn-modal-add-to-cart"
+                id="btn-modal-quote-whatsapp"
                 type="button"
-                onClick={handleAdd}
-                className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer"
+                onClick={handleWhatsAppQuote}
+                className="flex-1 py-3.5 px-4 sm:px-6 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/25 flex items-center justify-center gap-2 min-h-[44px] cursor-pointer"
               >
-                <ShoppingBag className="w-5 h-5 shrink-0" />
-                <span className="truncate">Cotizar ({Number((quantity * product.bv).toFixed(2))} BV)</span>
+                <MessageCircle className="w-5 h-5 fill-white/20 shrink-0" />
+                <span className="truncate">Cotizar por WhatsApp ({quantity} {quantity === 1 ? 'unidad' : 'unidades'})</span>
               </button>
             </div>
           </div>

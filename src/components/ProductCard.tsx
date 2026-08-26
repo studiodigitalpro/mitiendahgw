@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Eye, ShoppingBag, Sparkles, Check } from 'lucide-react';
+import { Eye, MessageCircle, Sparkles } from 'lucide-react';
 import { Product } from '../types';
+import { SPONSOR_INFO } from '../data/memberships';
 
 interface ProductCardProps {
   product: Product;
   onViewDetail: (product: Product) => void;
-  onAddToCart: (product: Product, quantity?: number) => void;
+  onAddToCart?: (product: Product, quantity?: number) => void;
   isPartnerMode: boolean; // whether current user sees partner prices directly or has 50 BV
 }
 
@@ -16,16 +17,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   isPartnerMode
 }) => {
   const [imgError, setImgError] = useState(false);
-  const [addedAnimation, setAddedAnimation] = useState(false);
 
-  const handleAdd = (e: React.MouseEvent) => {
+  const handleWhatsAppQuote = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddToCart(product, 1);
-    setAddedAnimation(true);
-    setTimeout(() => setAddedAnimation(false), 1200);
-  };
+    const phone = SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '');
+    const message = `¡Hola ${SPONSOR_INFO.name}! 👋 Deseo cotizar el siguiente producto de HGW Panamá:
 
-  const savings = Number((product.pricePublic - product.pricePartner).toFixed(2));
+📦 *Producto:* ${product.name}
+💵 *Precio Público:* B/. ${product.pricePublic.toFixed(2)} USD
+🏷️ *Precio Socio (-30%):* B/. ${product.pricePartner.toFixed(2)} USD (${product.bv.toFixed(2)} BV)
+
+🛵 *Modalidad de entrega:* (Por favor indique si desea Envío a domicilio o Retiro en almacén en Panamá)
+
+¿Me podrías confirmar disponibilidad y coordinar la compra? ¡Muchas gracias!`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div
@@ -44,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       <div className="absolute top-3 right-3 z-10">
         <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-900/90 backdrop-blur-sm text-emerald-400 border border-emerald-500/40 shadow-sm">
-          {product.bv} BV
+          {product.bv.toFixed(2)} BV
         </span>
       </div>
 
@@ -86,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </p>
         </div>
 
-        {/* Price & Cart Section */}
+        {/* Price & Direct WhatsApp Action Section */}
         <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
           {/* Price Container: PRECIO PÚBLICO DESTACADO PRIMERO, LUEGO PRECIO SOCIO */}
           <div className="space-y-1.5 bg-slate-50/90 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
@@ -121,12 +129,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           <button
-            id={`btn-add-cart-${product.id}`}
-            onClick={handleAdd}
-            className="w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white active:scale-98 shadow-emerald-600/20 cursor-pointer"
+            id={`btn-quote-whatsapp-${product.id}`}
+            type="button"
+            onClick={handleWhatsAppQuote}
+            className="w-full py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-md bg-[#25D366] hover:bg-[#20bd5a] text-white active:scale-98 shadow-green-600/20 cursor-pointer"
+            aria-label={`Cotizar ${product.name} por WhatsApp`}
           >
-            <ShoppingBag className="w-4 h-4" />
-            <span>Cotizar</span>
+            <MessageCircle className="w-4 h-4 fill-white/20 shrink-0" />
+            <span>Cotizar por WhatsApp</span>
           </button>
         </div>
       </div>
