@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Trash2,
@@ -15,10 +15,14 @@ import {
   User,
   Phone,
   MapPin,
-  FileText
+  FileText,
+  Search,
+  Plus,
+  Check
 } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, Product } from '../types';
 import { SPONSOR_INFO } from '../data/memberships';
+import { PRODUCTS } from '../data/products';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -28,6 +32,7 @@ interface CartDrawerProps {
   onRemoveItem: (productId: string | number) => void;
   onClearCart: () => void;
   onOpenMemberships: () => void;
+  onAddToCart?: (product: Product, quantity?: number) => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -37,7 +42,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
-  onOpenMemberships
+  onOpenMemberships,
+  onAddToCart
 }) => {
   const [currentStep, setCurrentStep] = useState<'products' | 'checkout'>('products');
   const [deliveryMethod, setDeliveryMethod] = useState<'domicilio' | 'oficina'>('domicilio');
@@ -47,14 +53,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [orderNotes, setOrderNotes] = useState('');
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; address?: string }>({});
 
+  // Additional products browser inside cart
+  const [productSearch, setProductSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [addedFeedbackId, setAddedFeedbackId] = useState<string | number | null>(null);
+
   // Reset to Step 1 whenever cart opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep('products');
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   // Pricing calculations
   const BASE_SHIPPING_COST = 5.00;
@@ -70,6 +79,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const totalSavings = isPartnerEligible ? publicSubtotal - partnerSubtotal : 0;
   const bvShortage = Math.max(0, Number((50 - totalBV).toFixed(1)));
   const totalItemsCount = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  // Filter available products to add from cart
+  const filteredAvailableProducts = useMemo(() => {
+    return PRODUCTS.filter((p) => {
+      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+      const matchesSearch =
+        p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+        p.categoryLabel.toLowerCase().includes(productSearch.toLowerCase()) ||
+        (p.shortDescription && p.shortDescription.toLowerCase().includes(productSearch.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [productSearch, selectedCategory]);
+
+  const handleAddProductFromCart = (product: Product) => {
+    if (onAddToCart) {
+      onAddToCart(product, 1);
+    } else {
+      const existing = items.find((i) => i.product.id === product.id);
+      if (existing) {
+        onUpdateQuantity(product.id, existing.quantity + 1);
+      }
+    }
+    setAddedFeedbackId(product.id);
+    setTimeout(() => {
+      setAddedFeedbackId(null);
+    }, 1200);
+  };
 
   const handleGoToCheckout = () => {
     if (items.length === 0) return;
@@ -159,6 +195,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     const whatsappUrl = `https://wa.me/${SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '')}?text=${encoded}`;
     window.open(whatsappUrl, '_blank');
   };
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -324,109 +362,253 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </button>
             </div>
           ) : currentStep === 'products' ? (
-            /* STEP 1: RESUMEN DE COTIZACIÓN DE PRODUCTOS (Espaciosa y Clara) */
+            /* STEP 1: RESUMEN DE COTIZACIÓN DE PRODUCTOS Y SECCIÓN PARA AÑADIR OTROS PRODUCTOS */
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Product List (8 cols) */}
-              <div className="lg:col-span-8 space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                    <Package className="w-4 h-4 text-emerald-600" />
-                    <span>Productos Seleccionados ({items.length})</span>
-                  </h3>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    Modifica cantidades o añade más
-                  </span>
-                </div>
+              {/* Product List & Quick Add (8 cols) */}
+              <div className="lg:col-span-8 space-y-6">
+                {/* 1. Current Cart Items */}
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <Package className="w-4 h-4 text-emerald-600" />
+                      <span>Productos en Cotización ({items.length})</span>
+                    </h3>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Modifica cantidades o añade más
+                    </span>
+                  </div>
 
-                <div className="space-y-3">
-                  {items.map((item) => {
-                    const unitPrice = isPartnerEligible ? item.product.pricePartner : item.product.pricePublic;
-                    const subtotal = unitPrice * item.quantity;
+                  <div className="space-y-3">
+                    {items.map((item) => {
+                      const unitPrice = isPartnerEligible ? item.product.pricePartner : item.product.pricePublic;
+                      const subtotal = unitPrice * item.quantity;
 
-                    return (
-                      <div
-                        key={item.product.id}
-                        className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 hover:border-emerald-500/40 transition-colors"
-                      >
-                        <div className="flex items-center gap-3.5 w-full sm:w-auto">
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white dark:bg-slate-900 p-1.5 shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shadow-xs">
-                            <img
-                              src={item.product.image || item.product.fallbackImage}
-                              alt={item.product.name}
-                              referrerPolicy="no-referrer"
-                              className="max-h-full max-w-full object-contain"
-                            />
+                      return (
+                        <div
+                          key={item.product.id}
+                          className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 hover:border-emerald-500/40 transition-colors"
+                        >
+                          <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white dark:bg-slate-900 p-1.5 shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shadow-xs">
+                              <img
+                                src={item.product.image || item.product.fallbackImage}
+                                alt={item.product.name}
+                                referrerPolicy="no-referrer"
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-0.5">
+                                {item.product.categoryLabel}
+                              </span>
+                              <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white line-clamp-1">
+                                {item.product.name}
+                              </h4>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs">
+                                <span className="text-slate-600 dark:text-slate-300 font-bold">
+                                  Público: <span className={isPartnerEligible ? 'line-through text-slate-400 font-normal' : 'text-slate-900 dark:text-white font-black'}>B/. {item.product.pricePublic.toFixed(2)}</span>
+                                </span>
+                                {isPartnerEligible ? (
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    Socio: B/. {item.product.pricePartner.toFixed(2)}
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    (Socio: B/. {item.product.pricePartner.toFixed(2)})
+                                  </span>
+                                )}
+                                <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-black">
+                                  {(item.product.bv * item.quantity).toFixed(1)} BV
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="min-w-0 flex-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-0.5">
-                              {item.product.categoryLabel}
-                            </span>
-                            <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white line-clamp-1">
-                              {item.product.name}
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs">
-                              <span className="text-slate-600 dark:text-slate-300 font-bold">
-                                Público: <span className={isPartnerEligible ? 'line-through text-slate-400 font-normal' : 'text-slate-900 dark:text-white font-black'}>B/. {item.product.pricePublic.toFixed(2)}</span>
+                          {/* Quantity & Item Subtotal Controls */}
+                          <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
+                              <button
+                                type="button"
+                                onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
+                                className="px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-black transition-colors cursor-pointer"
+                                aria-label="Restar una unidad"
+                              >
+                                -
+                              </button>
+                              <span className="px-3 py-1 text-sm font-black text-slate-900 dark:text-white min-w-[2rem] text-center">
+                                {item.quantity}
                               </span>
-                              {isPartnerEligible ? (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
-                                  <Sparkles className="w-3 h-3" />
-                                  Socio: B/. {item.product.pricePartner.toFixed(2)}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                                  (Socio: B/. {item.product.pricePartner.toFixed(2)})
-                                </span>
-                              )}
-                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-black">
-                                {(item.product.bv * item.quantity).toFixed(1)} BV
+                              <button
+                                type="button"
+                                onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
+                                className="px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-black transition-colors cursor-pointer"
+                                aria-label="Añadir una unidad"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <div className="text-right">
+                              <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white block font-mono">
+                                B/. {subtotal.toFixed(2)}
                               </span>
+                              <button
+                                type="button"
+                                onClick={() => onRemoveItem(item.product.id)}
+                                className="text-[11px] text-slate-400 hover:text-rose-500 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer mt-0.5"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Eliminar</span>
+                              </button>
                             </div>
                           </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                        {/* Quantity & Item Subtotal Controls */}
-                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center border border-slate-300 dark:border-slate-600 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                              className="px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-black transition-colors cursor-pointer"
-                              aria-label="Restar una unidad"
-                            >
-                              -
-                            </button>
-                            <span className="px-3 py-1 text-sm font-black text-slate-900 dark:text-white min-w-[2rem] text-center">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
-                              className="px-3 py-1.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-black transition-colors cursor-pointer"
-                              aria-label="Añadir una unidad"
-                            >
-                              +
-                            </button>
+                {/* 2. Añadir otros productos directamente en el carrito */}
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-700/80 space-y-3.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                        <Plus className="w-4 h-4 text-emerald-600" />
+                        <span>Añadir Otros Productos a la Cotización</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Agrega más productos de HGW Panamá sin salir del carrito
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        const el = document.getElementById('catalog');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Ver catálogo en la tienda</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Search and Category Filter for Quick Adding */}
+                  <div className="flex flex-col sm:flex-row gap-2.5">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Buscar producto por nombre (ej. Café, Arándano, Pasta...)"
+                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      {productSearch && (
+                        <button
+                          onClick={() => setProductSearch('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Category Selector */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                      {[
+                        { id: 'all', label: 'Todos' },
+                        { id: 'salud', label: 'Salud' },
+                        { id: 'cafe-te', label: 'Café & Té' },
+                        { id: 'cuidado-personal', label: 'Cuidado Personal' },
+                        { id: 'turmalina', label: 'Turmalina' }
+                      ].map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setSelectedCategory(cat.id)}
+                          className={`whitespace-nowrap px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            selectedCategory === cat.id
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Available Products Grid (Compact & Clickable) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                    {filteredAvailableProducts.slice(0, 10).map((prod) => {
+                      const inCartItem = items.find((i) => i.product.id === prod.id);
+                      const isJustAdded = addedFeedbackId === prod.id;
+
+                      return (
+                        <div
+                          key={prod.id}
+                          className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 flex items-center justify-between gap-2.5 hover:border-emerald-500/50 hover:shadow-xs transition-all"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="w-12 h-12 rounded-lg bg-slate-50 dark:bg-slate-900 p-1 shrink-0 border border-slate-100 dark:border-slate-700/50 flex items-center justify-center">
+                              <img
+                                src={prod.image || prod.fallbackImage}
+                                alt={prod.name}
+                                referrerPolicy="no-referrer"
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                {prod.name}
+                              </h5>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                <span className="font-extrabold text-slate-900 dark:text-white">
+                                  B/. {isPartnerEligible ? prod.pricePartner.toFixed(2) : prod.pricePublic.toFixed(2)}
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
+                                  {prod.bv.toFixed(1)} BV
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
-                          <div className="text-right">
-                            <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white block font-mono">
-                              B/. {subtotal.toFixed(2)}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => onRemoveItem(item.product.id)}
-                              className="text-[11px] text-slate-400 hover:text-rose-500 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer mt-0.5"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              <span>Eliminar</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddProductFromCart(prod)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 transition-all cursor-pointer ${
+                              isJustAdded
+                                ? 'bg-teal-600 text-white'
+                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs'
+                            }`}
+                            aria-label={`Añadir ${prod.name} a la cotización`}
+                          >
+                            {isJustAdded ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>¡Listo!</span>
+                              </>
+                            ) : inCartItem ? (
+                              <>
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>+1 ({inCartItem.quantity})</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Añadir</span>
+                              </>
+                            )}
+                          </button>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -479,8 +661,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
             </div>
           ) : (
-            /* STEP 2: FORMULARIO DE DATOS DE ENVÍO Y CONTACTO (Sin saturar la pantalla) */
-            <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in-50 duration-200">
+            /* STEP 2: FORMULARIO EN GRID DE 2 COLUMNAS (Optimizado para no ocupar mucho espacio y 100% responsivo) */
+            <div className="max-w-3xl mx-auto space-y-5 animate-in fade-in-50 duration-200">
               {/* Back to Step 1 Button */}
               <button
                 type="button"
@@ -491,18 +673,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>← Volver a modificar productos de la cotización</span>
               </button>
 
-              {/* Delivery Mode Choice */}
-              <div className="space-y-3">
+              {/* 1. Modalidad de Entrega (Grid 2 Columnas) */}
+              <div className="space-y-2.5">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <Truck className="w-4 h-4 text-emerald-600" />
-                  <span>1. Selecciona la Modalidad de Entrega en Panamá</span>
+                  <span>1. Modalidad de Entrega en Panamá</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('domicilio')}
-                    className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1.5 transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                       deliveryMethod === 'domicilio'
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20 text-emerald-900 dark:text-emerald-200'
                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
@@ -516,14 +698,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">+B/. 5.00</span>
                     </div>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      Envíos a domicilio en todo Panamá (tarifa base estimada).
+                      Envíos a todo Panamá (tarifa base estimada).
                     </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('oficina')}
-                    className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1.5 transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                       deliveryMethod === 'oficina'
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20 text-emerald-900 dark:text-emerald-200'
                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
@@ -537,20 +719,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <span className="text-xs font-black text-slate-500 font-mono">Gratis</span>
                     </div>
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
-                      Disponible para retiro directo en oficina autorizada HGW.
+                      Retiro directo en oficina autorizada HGW.
                     </span>
                   </button>
                 </div>
               </div>
 
-              {/* Customer Contact Details */}
-              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-4">
+              {/* 2. Customer Contact Form en GRID DE 2 COLUMNAS */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3.5">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <User className="w-4 h-4 text-emerald-600" />
                   <span>2. Datos de Contacto y Envío</span>
                 </h3>
 
-                <div className="space-y-3.5 text-xs sm:text-sm">
+                {/* GRID 2 COLUMNAS (1 col en móvil, 2 col en tablet/desktop) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4 text-xs sm:text-sm">
+                  {/* Columna 1: Nombre */}
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
                       Nombre y Apellido *
@@ -571,6 +755,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     )}
                   </div>
 
+                  {/* Columna 2: Teléfono / WhatsApp */}
                   <div>
                     <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
                       WhatsApp / Teléfono de Contacto *
@@ -591,71 +776,92 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     )}
                   </div>
 
-                  {deliveryMethod === 'domicilio' && (
-                    <div>
+                  {/* Si es a domicilio: Dirección en Col 1, Notas en Col 2 */}
+                  {deliveryMethod === 'domicilio' ? (
+                    <>
+                      <div className="md:col-span-1">
+                        <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
+                          Dirección de Entrega en Panamá *
+                        </label>
+                        <input
+                          id="input-client-address"
+                          type="text"
+                          value={clientAddress}
+                          onChange={(e) => {
+                            setClientAddress(e.target.value);
+                            if (formErrors.address) setFormErrors({ ...formErrors, address: undefined });
+                          }}
+                          placeholder="Provincia, Ciudad, Barriada, Calle..."
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                        {formErrors.address && (
+                          <p className="text-rose-500 text-xs font-semibold mt-1">{formErrors.address}</p>
+                        )}
+                      </div>
+
+                      <div className="md:col-span-1">
+                        <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
+                          Notas o indicaciones (opcional)
+                        </label>
+                        <input
+                          id="input-client-notes"
+                          type="text"
+                          value={orderNotes}
+                          onChange={(e) => setOrderNotes(e.target.value)}
+                          placeholder="Horario preferido, referencia..."
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="md:col-span-2">
                       <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
-                        Dirección de Entrega en Panamá *
+                        Notas o indicaciones adicionales (opcional)
                       </label>
                       <input
-                        id="input-client-address"
+                        id="input-client-notes"
                         type="text"
-                        value={clientAddress}
-                        onChange={(e) => {
-                          setClientAddress(e.target.value);
-                          if (formErrors.address) setFormErrors({ ...formErrors, address: undefined });
-                        }}
-                        placeholder="Provincia, Ciudad, Corregimiento, Barriada, Calle o Referencia"
+                        value={orderNotes}
+                        onChange={(e) => setOrderNotes(e.target.value)}
+                        placeholder="Horario de retiro preferido o alguna observación..."
                         className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
-                      {formErrors.address && (
-                        <p className="text-rose-500 text-xs font-semibold mt-1">{formErrors.address}</p>
-                      )}
                     </div>
                   )}
-
-                  <div>
-                    <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">
-                      Notas o instrucciones adicionales (opcional)
-                    </label>
-                    <input
-                      id="input-client-notes"
-                      type="text"
-                      value={orderNotes}
-                      onChange={(e) => setOrderNotes(e.target.value)}
-                      placeholder="Horario preferido, indicaciones especiales, etc."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
                 </div>
               </div>
 
-              {/* Final Totals Breakdown */}
-              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
-                <div className="space-y-1.5 text-xs sm:text-sm">
-                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                    <span>Subtotal Productos ({totalItemsCount} und):</span>
-                    <span className="font-mono font-bold">B/. {publicSubtotal.toFixed(2)}</span>
-                  </div>
-
-                  {isPartnerEligible && (
-                    <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
-                      <span>Descuento de Socio (-30%):</span>
-                      <span className="font-mono">-B/. {totalSavings.toFixed(2)}</span>
+              {/* 3. Final Totals Breakdown & Action */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                  <div className="space-y-1">
+                    <div className="flex justify-between sm:justify-start sm:gap-4 text-slate-600 dark:text-slate-400">
+                      <span>Subtotal ({totalItemsCount} und):</span>
+                      <span className="font-mono font-bold">B/. {publicSubtotal.toFixed(2)}</span>
                     </div>
-                  )}
 
-                  <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>Costo de Envío:</span>
-                    <span className="font-mono font-bold">
-                      {deliveryMethod === 'domicilio' ? `B/. ${BASE_SHIPPING_COST.toFixed(2)}` : 'B/. 0.00 (Gratis)'}
-                    </span>
+                    {isPartnerEligible && (
+                      <div className="flex justify-between sm:justify-start sm:gap-4 text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span>Descuento Socio (-30%):</span>
+                        <span className="font-mono">-B/. {totalSavings.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                    <span>Total a Pagar:</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-mono">
-                      B/. {finalTotal.toFixed(2)}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between sm:justify-start sm:gap-4 text-slate-600 dark:text-slate-300">
+                      <span>Costo de Envío:</span>
+                      <span className="font-mono font-bold">
+                        {deliveryMethod === 'domicilio' ? `B/. ${BASE_SHIPPING_COST.toFixed(2)}` : 'B/. 0.00 (Gratis)'}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between sm:justify-start sm:gap-4 text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                      <span>Total a Pagar:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">
+                        B/. {finalTotal.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -663,7 +869,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   id="btn-checkout-whatsapp"
                   type="button"
                   onClick={handleCheckoutWhatsApp}
-                  className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-base sm:text-lg transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2.5 cursor-pointer"
+                  className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-base sm:text-lg transition-all duration-200 shadow-xl shadow-emerald-600/25 flex items-center justify-center gap-2.5 cursor-pointer"
                 >
                   <Send className="w-5 h-5" />
                   <span>Enviar Cotización por WhatsApp</span>

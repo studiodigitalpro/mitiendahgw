@@ -433,6 +433,7 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
+        onAddToCart={handleAddToCart}
         onOpenMemberships={() => {
           setIsCartOpen(false);
           scrollToMemberships();
