@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Trash2,
@@ -18,15 +18,11 @@ import {
   FileText,
   Search,
   Plus,
-  Check,
   Mail,
-  MessageCircle,
-  Loader2,
-  ExternalLink
+  Loader2
 } from 'lucide-react';
 import { CartItem, Product } from '../types';
 import { SPONSOR_INFO } from '../data/memberships';
-import { PRODUCTS } from '../data/products';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -46,8 +42,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
-  onOpenMemberships,
-  onAddToCart
+  onOpenMemberships
 }) => {
   const [currentStep, setCurrentStep] = useState<'products' | 'checkout' | 'success'>('products');
   const [deliveryMethod, setDeliveryMethod] = useState<'domicilio' | 'oficina'>('domicilio');
@@ -57,28 +52,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [clientAddress, setClientAddress] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState('');
-  const [clientWhatsAppUrl, setClientWhatsAppUrl] = useState('');
-  const [mailtoUrl, setMailtoUrl] = useState('');
-  const [emailStatus, setEmailStatus] = useState<{ dispatched: boolean; error?: string | null }>({ dispatched: false });
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; email?: string; address?: string }>({});
-
-  // Additional products browser inside cart
-  const [productSearch, setProductSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [addedFeedbackId, setAddedFeedbackId] = useState<string | number | null>(null);
 
   // Reset to Step 1 whenever cart opens
   useEffect(() => {
     if (isOpen) {
-      if (currentStep === 'success') {
-        // Keep as is or reset if empty
-        if (items.length === 0) setCurrentStep('products');
-      } else {
-        setCurrentStep('products');
-      }
+      setCurrentStep('products');
     }
-  }, [isOpen, items.length]);
+  }, [isOpen]);
 
   // Pricing calculations
   const BASE_SHIPPING_COST = 5.00;
@@ -95,31 +76,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const bvShortage = Math.max(0, Number((50 - totalBV).toFixed(1)));
   const totalItemsCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Filter available products to add from cart
-  const filteredAvailableProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => {
-      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-      const matchesSearch =
-        p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.categoryLabel.toLowerCase().includes(productSearch.toLowerCase()) ||
-        (p.shortDescription && p.shortDescription.toLowerCase().includes(productSearch.toLowerCase()));
-      return matchesCategory && matchesSearch;
-    });
-  }, [productSearch, selectedCategory]);
-
-  const handleAddProductFromCart = (product: Product) => {
-    if (onAddToCart) {
-      onAddToCart(product, 1);
-    } else {
-      const existing = items.find((i) => i.product.id === product.id);
-      if (existing) {
-        onUpdateQuantity(product.id, existing.quantity + 1);
-      }
-    }
-    setAddedFeedbackId(product.id);
+  const handleReturnToCatalog = () => {
+    onClose();
     setTimeout(() => {
-      setAddedFeedbackId(null);
-    }, 1200);
+      const el = document.getElementById('catalog');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleGoToCheckout = () => {
@@ -215,26 +181,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     const encoded = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${SPONSOR_INFO.whatsapp.replace(/[^0-9]/g, '')}?text=${encoded}`;
-    setLastWhatsAppUrl(whatsappUrl);
 
-    // Client WhatsApp thank you confirmation link from Yamilka (+507 6778-8375)
-    const cleanPhone = clientPhone.replace(/[^0-9]/g, '');
-    const clientWa = cleanPhone
-      ? `https://wa.me/${cleanPhone.startsWith('507') ? cleanPhone : '507' + cleanPhone}?text=${encodeURIComponent(
-          `¡Hola ${clientName.trim()}! 👋 Muchas gracias por tu interés en los productos HGW. Soy Yamilka Batista (+507 6778-8375), Distribuidora Independiente en Panamá, y he recibido tu cotización por un total de B/. ${finalTotal.toFixed(2)} USD (${totalBV.toFixed(1)} BV). ¡Enseguida te atiendo con mucho gusto! 🌿`
-        )}`
-      : '';
-    setClientWhatsAppUrl(clientWa);
-
-    // Prepare direct Mailto fallback URL
-    const mailtoSubject = encodeURIComponent(`🛒 Nueva Cotización HGW Panamá - ${clientName.trim()} (B/. ${finalTotal.toFixed(2)})`);
-    const mailtoBody = encodeURIComponent(message);
-    const mailto = `mailto:info@hgwpanama.com?cc=info.yamilka@gmail.com,yamilkabatista2026@gmail.com&subject=${mailtoSubject}&body=${mailtoBody}`;
-    setMailtoUrl(mailto);
-
-    // Send payload to backend server for email notification to info@hgwpanama.com with CC to info.yamilka@gmail.com and yamilkabatista2026@gmail.com
+    // Automatic background notification dispatch (SMTP email to info@hgwpanama.com with CC to Yamilka)
     try {
-      const res = await fetch('/api/send-quotation', {
+      await fetch('/api/send-quotation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -254,38 +204,30 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           totalSavings,
         }),
       });
-      const data = await res.json();
-      setEmailStatus({
-        dispatched: Boolean(data?.emailDispatched),
-        error: data?.emailError || null,
-      });
     } catch (e) {
-      console.warn('Notice on quotation submission API:', e);
-      setEmailStatus({ dispatched: false, error: 'Servidor no respondió' });
+      console.warn('Notice on quotation background submission:', e);
     } finally {
       setIsSubmitting(false);
-      // Open WhatsApp in new tab or window
+      // Automatically open WhatsApp with preloaded order
       try {
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
       } catch (err) {
-        console.warn('Browser prevented direct window open:', err);
+        console.warn('Window open notice:', err);
       }
-      // Transition to success screen
+      // Show clean, customer-friendly success view
       setCurrentStep('success');
     }
   };
 
-  const handleResetForNewQuotation = () => {
+  const handleFinishAndExplore = () => {
     onClearCart();
     setClientName('');
     setClientPhone('');
     setClientEmail('');
     setClientAddress('');
     setOrderNotes('');
-    setLastWhatsAppUrl('');
-    setClientWhatsAppUrl('');
-    setMailtoUrl('');
     setCurrentStep('products');
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -568,144 +510,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Añadir otros productos directamente en el carrito */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-700/80 space-y-3.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                        <Plus className="w-4 h-4 text-emerald-600" />
-                        <span>Añadir Otros Productos a la Cotización</span>
-                      </h3>
+                {/* 2. Botón para seguir explorando y buscando en la página principal */}
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-700/80">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="space-y-0.5 text-center sm:text-left">
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                        ¿Deseas agregar más productos a tu cotización?
+                      </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Agrega más productos de HGW Panamá sin salir del carrito
+                        Regresa a la tienda principal para explorar todas las categorías y beneficios.
                       </p>
                     </div>
-
                     <button
                       type="button"
-                      onClick={() => {
-                        onClose();
-                        const el = document.getElementById('catalog');
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                      className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      id="btn-return-catalog-from-cart"
+                      onClick={handleReturnToCatalog}
+                      className="whitespace-nowrap px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/15 flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0 w-full sm:w-auto"
                     >
-                      <span>Ver catálogo en la tienda</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <Search className="w-4 h-4" />
+                      <span>Ver y Buscar en el Catálogo</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
-                  </div>
-
-                  {/* Search and Category Filter for Quick Adding */}
-                  <div className="flex flex-col sm:flex-row gap-2.5">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={productSearch}
-                        onChange={(e) => setProductSearch(e.target.value)}
-                        placeholder="Buscar producto por nombre (ej. Café, Arándano, Pasta...)"
-                        className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                      {productSearch && (
-                        <button
-                          onClick={() => setProductSearch('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
-                        >
-                          ✕
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Category Selector */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                      {[
-                        { id: 'all', label: 'Todos' },
-                        { id: 'salud', label: 'Salud' },
-                        { id: 'cafe-te', label: 'Café & Té' },
-                        { id: 'cuidado-personal', label: 'Cuidado Personal' },
-                        { id: 'turmalina', label: 'Turmalina' }
-                      ].map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setSelectedCategory(cat.id)}
-                          className={`whitespace-nowrap px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                            selectedCategory === cat.id
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                          }`}
-                        >
-                          {cat.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Available Products Grid (Compact & Clickable) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
-                    {filteredAvailableProducts.slice(0, 10).map((prod) => {
-                      const inCartItem = items.find((i) => i.product.id === prod.id);
-                      const isJustAdded = addedFeedbackId === prod.id;
-
-                      return (
-                        <div
-                          key={prod.id}
-                          className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 flex items-center justify-between gap-2.5 hover:border-emerald-500/50 hover:shadow-xs transition-all"
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-slate-50 dark:bg-slate-900 p-1 shrink-0 border border-slate-100 dark:border-slate-700/50 flex items-center justify-center">
-                              <img
-                                src={prod.image || prod.fallbackImage}
-                                alt={prod.name}
-                                referrerPolicy="no-referrer"
-                                className="max-h-full max-w-full object-contain"
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                {prod.name}
-                              </h5>
-                              <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                                <span className="font-extrabold text-slate-900 dark:text-white">
-                                  B/. {isPartnerEligible ? prod.pricePartner.toFixed(2) : prod.pricePublic.toFixed(2)}
-                                </span>
-                                <span className="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-[10px]">
-                                  {prod.bv.toFixed(1)} BV
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => handleAddProductFromCart(prod)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 transition-all cursor-pointer ${
-                              isJustAdded
-                                ? 'bg-teal-600 text-white'
-                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs'
-                            }`}
-                            aria-label={`Añadir ${prod.name} a la cotización`}
-                          >
-                            {isJustAdded ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>¡Listo!</span>
-                              </>
-                            ) : inCartItem ? (
-                              <>
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>+1 ({inCartItem.quantity})</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Añadir</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               </div>
@@ -1027,128 +852,35 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
             </div>
           ) : (
-            /* STEP 3: SUCCESS CONFIRMATION SCREEN */
-            <div className="max-w-2xl mx-auto py-4 px-2 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-lg shadow-emerald-600/20">
-                <CheckCircle2 className="w-10 h-10" />
+            /* STEP 3: SUCCESS CONFIRMATION SCREEN (CLEAN & CLIENT-FRIENDLY) */
+            <div className="max-w-xl mx-auto py-8 px-4 space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center shadow-xl shadow-emerald-600/20">
+                <CheckCircle2 className="w-12 h-12" />
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                  ¡Cotización Enviada con Éxito!
+              <div className="space-y-3">
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                  ¡Cotización Recibida con Éxito!
                 </h3>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-lg mx-auto leading-relaxed">
-                  ¡Hola <strong>{clientName || 'Cliente'}</strong>! Muchas gracias por tu interés en los productos HGW. Soy <strong>{SPONSOR_INFO.name}</strong> (+507 6778-8375) y he recibido tu cotización.
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-md mx-auto">
+                  ¡Muchas gracias, <strong>{clientName || 'estimado cliente'}</strong>! Hemos recibido tu solicitud de cotización por un total de{' '}
+                  <strong className="text-emerald-600 dark:text-emerald-400">B/. {finalTotal.toFixed(2)} USD</strong>.
+                </p>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Tu asesora <strong>{SPONSOR_INFO.name}</strong> (+507 6778-8375) te contactará en breve para coordinar tu entrega y brindarte asesoría personalizada.
                 </p>
               </div>
 
-              {/* Notification Badges Summary */}
-              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-left space-y-3.5 text-xs sm:text-sm">
-                <h4 className="font-extrabold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 flex items-center justify-between">
-                  <span>📬 Resumen de Notificaciones y Canales:</span>
-                  <span className="text-[11px] font-mono text-emerald-600 font-bold">Total: B/. {finalTotal.toFixed(2)} USD</span>
-                </h4>
-
-                <div className="space-y-2.5 text-slate-600 dark:text-slate-300">
-                  <div className="flex items-start gap-2.5">
-                    <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between flex-wrap gap-1">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">Destinatario Principal (SMTP 465):</span>
-                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-bold">
-                          mail.hgwpanama.com
-                        </span>
-                      </div>
-                      <code className="text-emerald-600 dark:text-emerald-400 font-mono text-xs">info@hgwpanama.com</code>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2.5">
-                    <Mail className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">Con Copia (CC):</span>{' '}
-                      <span className="font-mono text-[11px] text-slate-700 dark:text-slate-300">info.yamilka@gmail.com, yamilkabatista2026@gmail.com</span>
-                    </div>
-                  </div>
-
-                  {clientEmail && (
-                    <div className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">Confirmación al Cliente por Correo:</span>{' '}
-                        <code className="text-emerald-600 dark:text-emerald-400 font-mono">{clientEmail}</code>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-2.5">
-                    <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">WhatsApp Remitente & Asesor:</span>{' '}
-                      <strong>+507 6778-8375 (Yamilka Batista)</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons & Fallback Links */}
-              <div className="space-y-3 pt-2">
-                {lastWhatsAppUrl && (
-                  <a
-                    id="btn-success-open-whatsapp-sponsor"
-                    href={lastWhatsAppUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-green-600/20 flex items-center justify-center gap-2.5 cursor-pointer"
-                  >
-                    <MessageCircle className="w-5 h-5 shrink-0" />
-                    <span>Abrir y Enviar Pedido a Yamilka (+507 6778-8375)</span>
-                    <ExternalLink className="w-4 h-4 shrink-0" />
-                  </a>
-                )}
-
-                {clientWhatsAppUrl && (
-                  <a
-                    id="btn-success-open-whatsapp-client"
-                    href={clientWhatsAppUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-4 rounded-xl bg-teal-50 dark:bg-teal-950/50 hover:bg-teal-100 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4 shrink-0" />
-                    <span>Enviar Mensaje de Confirmación al WhatsApp del Cliente ({clientPhone})</span>
-                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                  </a>
-                )}
-
-                {mailtoUrl && (
-                  <a
-                    id="btn-success-open-mailto"
-                    href={mailtoUrl}
-                    className="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Mail className="w-4 h-4 shrink-0 text-emerald-600" />
-                    <span>Enviar Copia Directa por mi Correo (info@hgwpanama.com)</span>
-                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                  </a>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={handleResetForNewQuotation}
-                    className="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
-                  >
-                    Nueva Cotización
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer"
-                  >
-                    Cerrar y Seguir Explorando
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  type="button"
+                  id="btn-success-finish-explore"
+                  onClick={handleFinishAndExplore}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black text-sm sm:text-base transition-all duration-200 shadow-lg shadow-emerald-600/25 cursor-pointer"
+                >
+                  Regresar a la Tienda Principal
+                </button>
               </div>
             </div>
           )}
