@@ -14,7 +14,6 @@ import { LeadershipSection } from './components/LeadershipSection';
 import { VideoShortsGallery } from './components/VideoShortsGallery';
 import { Footer } from './components/Footer';
 import { NewsletterModal } from './components/NewsletterModal';
-import { YamilkaChatbot } from './components/YamilkaChatbot';
 import { PRODUCTS } from './data/products';
 import { SPONSOR_INFO, MEMBERSHIP_PLANS } from './data/memberships';
 import { Product, CartItem, ProductCategory, MembershipPlan } from './types';
@@ -439,15 +438,6 @@ export default function App() {
 
       {/* Emerging Newsletter & Activities Subscription Pop-up */}
       <NewsletterModal />
-
-      {/* Yamilka Batista Conversational AI Chatbot */}
-      <YamilkaChatbot
-        onSelectProduct={(product) => {
-          setSelectedProduct(product);
-          setIsProductModalOpen(true);
-        }}
-        onOpenMemberships={scrollToMemberships}
-      />
     </div>
   );
 }
